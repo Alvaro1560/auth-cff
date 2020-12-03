@@ -1,4 +1,4 @@
-package auth
+package register
 
 import (
 	"github.com/gofiber/fiber/v2"

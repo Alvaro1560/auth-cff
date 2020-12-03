@@ -5,7 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func AuthRouter(app *fiber.App, db *sqlx.DB, tx string) {
+func AuthenticationRouter(app *fiber.App, db *sqlx.DB, tx string) {
 
 	ln := Handler{DB: db, TxID: tx}
 
