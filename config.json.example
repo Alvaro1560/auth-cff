@@ -1,0 +1,30 @@
+{
+  "app":{
+    "service_name": "Ecatch-Engine",
+    "port": 0,
+    "allowed_domains": "*",
+    "path_log": "./log",
+    "log_review_interval":60,
+    "register_log": false,
+    "rsa_private_key": "app.rsa",
+    "rsa_public_key": "app.rsa.pub",
+    "logger_http": false
+  },
+  "db": {
+    "engine": "",
+    "server": "",
+    "port": 0,
+    "name": "",
+    "user": "",
+    "password": "",
+    "instance": "",
+    "is_secure": false
+  },
+  "smtp" : {
+    "smtp_port": 0,
+    "smtp_host": "",
+    "smtp_email": "",
+    "smtp_password": ""
+  }
+}
+
