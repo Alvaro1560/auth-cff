@@ -1,6 +1,6 @@
 package auth
 
-type Model struct {
+type LoginRequest struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -9,7 +9,23 @@ type Model struct {
 	RealIP   string `json:"real_ip"`
 }
 
-type ModelResponse struct {
+type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+type ForgotPasswordRequest struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+type ChangePasswordRequest struct {
+	ID              string `json:"id"`
+	Username        string `json:"username"`
+	Password        string `json:"password"`
+	PasswordConfirm string `json:"password_confirm"`
+}
+
+type PasswordPolicyRequest struct {
+	Password string `json:"password"`
 }

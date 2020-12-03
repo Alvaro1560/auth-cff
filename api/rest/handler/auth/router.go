@@ -10,9 +10,14 @@ func AuthenticationRouter(app *fiber.App, db *sqlx.DB, tx string) {
 	ln := Handler{DB: db, TxID: tx}
 
 	api := app.Group("/api")
-	v3 := api.Group("/v3")
-	v3.Post("/auth", ln.LoginV3)
+	v1 := api.Group("/v1/auth")
+	v1.Post("/forgot-password", ln.ForgotPassword)
+	v1.Post("/change-password", ln.ChangePassword)
+	v1.Post("/password-policy", ln.PasswordPolicy)
 
-	v4 := api.Group("/v4")
-	v4.Post("/auth", ln.Login)
+	v3 := api.Group("/v3/auth")
+	v3.Post("", ln.LoginV3)
+
+	v4 := api.Group("/v4/auth")
+	v4.Post("", ln.Login)
 }

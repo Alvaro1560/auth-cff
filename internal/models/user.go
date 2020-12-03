@@ -27,7 +27,7 @@ type User struct {
 	RealIP                 string     `json:"real_ip,omitempty" bson:"real_ip"`
 	Token                  string     `json:"token,omitempty" bson:"token"`
 	SessionID              string     `json:"session_id" bson:"session_id"`
-	Colors                 Color      `json:"colors" bson:"colors"`
+	Colors                 Color      `json:"colors,omitempty" bson:"colors"`
 	Roles                  []*string  `json:"roles,omitempty" bson:"roles"`
 	DocTypes               []*int     `json:"doc_types,omitempty" bson:"doc_types"`
 	Projects               []*string  `json:"projects,omitempty" bson:"projects"`
