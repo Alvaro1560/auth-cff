@@ -92,7 +92,7 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 func (h *Handler) ChangePassword(c *fiber.Ctx) error {
 	res := response.Model{Error: true}
 	var msg msgs.Model
-	m := ForgotPasswordRequest{}
+	m := ChangePasswordRequest{}
 	err := c.BodyParser(&m)
 	if err != nil {
 		logger.Error.Printf("no se pudo leer el forgot password: %v", err)

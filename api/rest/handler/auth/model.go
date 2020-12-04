@@ -21,7 +21,6 @@ type ForgotPasswordRequest struct {
 
 type ChangePasswordRequest struct {
 	ID              string `json:"id"`
-	Username        string `json:"username"`
 	Password        string `json:"password"`
 	PasswordConfirm string `json:"password_confirm"`
 }
