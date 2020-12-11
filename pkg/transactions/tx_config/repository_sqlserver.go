@@ -26,7 +26,7 @@ func NewTxConfigSqlServerRepository(db *sqlx.DB, user *models.User, txID string)
 
 // Create registra en la BD
 func (s *sqlserver) Create(m *TxConfig) error {
-	const sqlInsert = `INSERT INTO tx.config (action, description, user_id) VALUES (@action, @description, @user_id) SELECT ID = convert(bigint, SCOPE_IDENTITY()) `
+	const sqlInsert = `INSERT INTO tx.config ([action], description, user_id) VALUES (@action, @description, @user_id) SELECT ID = convert(bigint, SCOPE_IDENTITY()) `
 	stmt, err := s.DB.Prepare(sqlInsert)
 	if err != nil {
 		return nil

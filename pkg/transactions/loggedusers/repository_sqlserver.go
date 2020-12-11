@@ -33,11 +33,11 @@ func (s *sqlserver) Create(m *TxLoggedUser) error {
 		return nil
 	}
 	err = stmt.QueryRow(
-		sql.Named("id_execution", m.Event),
-		sql.Named("id_execution", m.HostName),
-		sql.Named("id_execution", m.IpRequest),
-		sql.Named("id_execution", m.IpRemote),
-		sql.Named("id_execution", m.UserId),
+		sql.Named("event", m.Event),
+		sql.Named("host_name", m.HostName),
+		sql.Named("ip_request", m.IpRequest),
+		sql.Named("ip_remote", m.IpRemote),
+		sql.Named("user_id", m.UserId),
 	).Scan(&m.ID)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't insert tx loggedusers: %v", err)

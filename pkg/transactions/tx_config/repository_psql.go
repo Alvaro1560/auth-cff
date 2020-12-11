@@ -26,7 +26,7 @@ func NewTxConfigPsqlRepository(db *sqlx.DB, user *models.User, txID string) *psq
 
 // Create registra en la BD
 func (s *psql) Create(m *TxConfig) error {
-	const psqlInsert = `INSERT INTO config (action, description, user_id) VALUES ($1, $2, $3,) RETURNING id `
+	const psqlInsert = `INSERT INTO config ("action", description, user_id) VALUES ($1, $2, $3,) RETURNING id `
 	stmt, err := s.DB.Prepare(psqlInsert)
 	if err != nil {
 		return nil

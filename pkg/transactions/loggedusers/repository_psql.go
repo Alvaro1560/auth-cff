@@ -32,11 +32,11 @@ func (s *psql) Create(m *TxLoggedUser) error {
 		return nil
 	}
 	err = stmt.QueryRow(
-		sql.Named("id_execution", m.Event),
-		sql.Named("id_execution", m.HostName),
-		sql.Named("id_execution", m.IpRequest),
-		sql.Named("id_execution", m.IpRemote),
-		sql.Named("id_execution", m.UserId),
+		m.Event,
+		m.HostName,
+		m.IpRequest,
+		m.IpRemote,
+		m.UserId,
 	).Scan(&m.ID)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't insert tx loggeduser: %v", err)
