@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/api/rest/handler/auth"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/api/rest/handler/look_and_feel"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/api/rest/handler/users"
 
 	"github.com/ansrivas/fiberprometheus/v2"
@@ -34,5 +35,6 @@ func routes(db *sqlx.DB, loggerHttp bool, allowedOrigins string) *fiber.App {
 
 	auth.AuthenticationRouter(app, db, TxID)
 	register.UserRouter(app, db, TxID)
+	look_and_feel.LookAndFeel(app, db, TxID)
 	return app
 }
