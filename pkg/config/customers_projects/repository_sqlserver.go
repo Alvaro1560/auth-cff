@@ -3,7 +3,6 @@ package customers_projects
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/helper"
 
@@ -102,9 +101,9 @@ func (s *sqlserver) getProjectByRoles(roleIDs []string) ([]*string, error) {
 	var ms []*Project
 	var projects []*string
 	const sqlGetAll = `SELECT convert(nvarchar(50), p.id) id  FROM cfg.customers_projects p WITH(NOLOCK) JOIN auth.roles_projects rp ON p.id = rp.project 
-			    WHERE rp.role_id IN (@roles) `
-
-	err := s.DB.Select(&ms, sqlGetAll, sql.Named("roles", strings.Join(roleIDs, ",")))
+			    WHERE rp.role_id IN (%s) `
+	query := fmt.Sprintf(sqlGetAll, helper.SliceToString(roleIDs))
+	err := s.DB.Select(&ms, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -121,9 +120,9 @@ func (s *sqlserver) getProjectByRoles(roleIDs []string) ([]*string, error) {
 func (s *sqlserver) getProjectByRolesAndProjectID(roleIDs, pjts []string) ([]*Project, error) {
 	var ms []*Project
 	const sqlGetProjectByRolesAndProjectID = `SELECT convert(nvarchar(50), p.id) id, p.name, p.description, p.department, p.email, p.phone, p.product_owner, convert(nvarchar(50), p.customers_id) customers_id, p.created_at, p.updated_at  FROM cfg.customers_projects p WITH(NOLOCK) JOIN auth.roles_projects rp  WITH(NOLOCK) ON p.id = rp.project 
-			    WHERE rp.role_id IN (@roles) AND p.customers_id IN (@projects) `
-
-	err := s.DB.Select(&ms, sqlGetProjectByRolesAndProjectID, sql.Named("roles", strings.Join(roleIDs, ",")), sql.Named("projects", strings.Join(pjts, ",")))
+			    WHERE rp.role_id IN (%s) AND p.customers_id IN (%s) `
+	query := fmt.Sprintf(sqlGetProjectByRolesAndProjectID, helper.SliceToString(roleIDs), helper.SliceToString(pjts))
+	err := s.DB.Select(&ms, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

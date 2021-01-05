@@ -101,10 +101,10 @@ func (s *orcl) GetAll() ([]*Project, error) {
 func (s *orcl) getProjectByRoles(roleIDs []string) ([]*string, error) {
 	var ms []*Project
 	var projects []*string
-	const osqlGetAll = `SELECT convert(nvarchar(50), p.id) id,  FROM cfg.customers_projects p JOIN auth.roles_projects rp ON p.id = rp.project 
-			    WHERE rp.role_id IN (:1) `
-
-	err := s.DB.Select(&ms, osqlGetAll, strings.Join(roleIDs, ","))
+	const sqlGetProjectByRoles = `SELECT p.id  FROM cfg.customers_projects p JOIN auth.roles_projects rp ON p.id = rp.project 
+			    WHERE rp.role_id IN (%s) `
+	query := fmt.Sprintf(sqlGetProjectByRoles, helper.SliceToString(roleIDs))
+	err := s.DB.Select(&ms, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -120,10 +120,10 @@ func (s *orcl) getProjectByRoles(roleIDs []string) ([]*string, error) {
 
 func (s *orcl) getProjectByRolesAndProjectID(roleIDs, pjts []string) ([]*Project, error) {
 	var ms []*Project
-	const osqlGetProjectByRolesAndProjectID = `SELECT p.id, p.name, p.description, p.department, p.email, p.phone, p.product_owner, p.customers_id, p.created_at, p.updated_at   FROM cfg.customers_projects p  JOIN auth.roles_projects rp ON p.id = rp.project 
-			    WHERE rp.role_id IN (:1) AND  p.customers_id  IN (:2) `
-
-	err := s.DB.Select(&ms, osqlGetProjectByRolesAndProjectID, strings.Join(roleIDs, ","), strings.Join(pjts, ","))
+	const sqlGetProjectByRolesAndProjectID = `SELECT p.id id, p.name, p.description, p.department, p.email, p.phone, p.product_owner,  p.customers_id customers_id, p.created_at, p.updated_at  FROM cfg.customers_projects p JOIN auth.roles_projects rp  ON p.id = rp.project 
+			    WHERE rp.role_id IN (%s) AND p.customers_id IN (%s) `
+	query := fmt.Sprintf(sqlGetProjectByRolesAndProjectID, helper.SliceToString(roleIDs), helper.SliceToString(pjts))
+	err := s.DB.Select(&ms, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

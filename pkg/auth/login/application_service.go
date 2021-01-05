@@ -2,6 +2,7 @@ package login
 
 import (
 	"fmt"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/encryp"
 	"strings"
 
 	"github.com/google/uuid"
@@ -30,18 +31,29 @@ func NewLoginService(db *sqlx.DB, TxID string) Service {
 func (s Service) Login(id, Username, Password string, ClientID int, HostName, RealIP string) (string, int, error) {
 	var token string
 	m := NewLogin(id, Username, Password, ClientID, HostName, RealIP)
-
+	if m.Username == "" {
+		m.Username = m.ID
+	}
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.TxID, " - don't meet validations:", err)
 		return token, 15, err
 	}
 
 	if m.ClientID == 2 {
-		//TODO
-		// valida si viene de web y decryp usr and pass segun algoritmo de angular
-	}
-	if m.Username == "" {
-		m.Username = m.ID
+		encryp.ExampleNewGCMEncrypter(Password)
+		//encryp.ExampleNewGCMDecrypter(Password)
+
+	} else if m.ClientID == 9925 {
+		infoByte, err := encryp.DecryptGCM(Password, "KEYITC")
+		if err != nil {
+			logger.Error.Println(s.TxID, " - don't meet validations:", err)
+			return token, 15, err
+		}
+		m.Password = string(infoByte)
+
+	} else {
+		logger.Error.Println(s.TxID, " - client not configured: ")
+		return token, 70, fmt.Errorf(" - client not configured: ")
 	}
 
 	usr, cod, err := s.getUserByUsername(m.Username)

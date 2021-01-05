@@ -6,7 +6,7 @@ import (
 
 // Model estructura de Module
 type Login struct {
-	ID       string `json:"id" db:"id" valid:"-"`
+	ID       string `json:"id" db:"id" valid:"required"`
 	Username string `json:"username" db:"username" valid:"required"`
 	Password string `json:"password" db:"password"`
 	ClientID int    `json:"client_id" db:"client_id"`

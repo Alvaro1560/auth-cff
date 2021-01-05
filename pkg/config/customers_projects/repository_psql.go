@@ -3,7 +3,6 @@ package customers_projects
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/helper"
@@ -101,9 +100,9 @@ func (s *psql) getProjectByRoles(roleIDs []string) ([]*string, error) {
 	var ms []*Project
 	var projects []*string
 	const sqlGetProjectByRoles = `SELECT p.id  FROM cfg.customers_projects p JOIN auth.roles_projects rp ON p.id = rp.project 
-			    WHERE rp.role_id IN ($1) `
-
-	err := s.DB.Select(&ms, sqlGetProjectByRoles, strings.Join(roleIDs, ","))
+			    WHERE rp.role_id IN (%s) `
+	query := fmt.Sprintf(sqlGetProjectByRoles, helper.SliceToString(roleIDs))
+	err := s.DB.Select(&ms, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -120,9 +119,9 @@ func (s *psql) getProjectByRoles(roleIDs []string) ([]*string, error) {
 func (s *psql) getProjectByRolesAndProjectID(roleIDs, pjts []string) ([]*Project, error) {
 	var ms []*Project
 	const sqlGetProjectByRolesAndProjectID = `SELECT p.id id, p.name, p.description, p.department, p.email, p.phone, p.product_owner,  p.customers_id customers_id, p.created_at, p.updated_at  FROM cfg.customers_projects p JOIN auth.roles_projects rp  ON p.id = rp.project 
-			    WHERE rp.role_id IN ($1) AND p.customers_id IN ($2) `
-
-	err := s.DB.Select(&ms, sqlGetProjectByRolesAndProjectID, strings.Join(roleIDs, ","), strings.Join(pjts, ","))
+			    WHERE rp.role_id IN (%s) AND p.customers_id IN (%s) `
+	query := fmt.Sprintf(sqlGetProjectByRolesAndProjectID, helper.SliceToString(roleIDs), helper.SliceToString(pjts))
+	err := s.DB.Select(&ms, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
