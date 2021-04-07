@@ -1,6 +1,7 @@
 package register
 
 import (
+	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/password"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
@@ -43,6 +44,21 @@ func (h *Handler) CreateUser(c *fiber.Ctx) error {
 		res.Code, res.Type, res.Msg = msg.GetByCode(74)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
+	result, err := govalidator.ValidateStruct(m)
+	if err != nil {
+		logger.Error.Printf("Error en validación de datos : %v ", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(15)
+		res.Msg = err.Error()
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if !result {
+		logger.Error.Printf("No cumple la validación de datos : %v ", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(15)
+		res.Msg = err.Error()
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
 	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
 	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
 	m.Password = password.Encrypt(m.Password)
