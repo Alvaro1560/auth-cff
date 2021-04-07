@@ -4,6 +4,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/password"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles_password_policy"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
 	"net/http"
 
@@ -44,7 +45,7 @@ func (h *Handler) CreateUser(c *fiber.Ctx) error {
 		res.Code, res.Type, res.Msg = msg.GetByCode(74)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
-	result, err := govalidator.ValidateStruct(m)
+	resultValidStruct, err := govalidator.ValidateStruct(m)
 	if err != nil {
 		logger.Error.Printf("Error en validación de datos : %v ", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(15)
@@ -52,15 +53,46 @@ func (h *Handler) CreateUser(c *fiber.Ctx) error {
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
-	if !result {
+	if !resultValidStruct {
 		logger.Error.Printf("No cumple la validación de datos : %v ", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(15)
 		res.Msg = err.Error()
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
+	repositoryRPasswordPolicy := roles_password_policy.FactoryStorage(h.DB, nil, h.TxID)
+	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
+	rs := []string{"50602690-B91F-4567-9A8D-A812B37A87BF"}
+	pp, err :=servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
+	if err == nil {
+		logger.Error.Println("couldn't get role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	if pp == nil {
+		logger.Error.Println("don't exists role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
 	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
 	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
+	var result bool
+	for _, policy := range pp {
+		valid, cod, err := serviceUsers.ValidatePasswordPolicy(m.Password,policy.MaxLength, policy.MinLength,policy.Alpha,
+			policy.Digits, policy.Special, policy.UpperCase,policy.LowerCase,policy.Enable)
+		if err != nil {
+			logger.Error.Println("couldn't get password to validate")
+			res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+			return c.Status(http.StatusAccepted).JSON(res)
+		}
+		result = valid
+	}
+	if !result {
+		logger.Error.Println("Password no cumple politicas del rol")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
 	m.Password = password.Encrypt(m.Password)
 	m.PasswordConfirm = ""
 	user, cod, err := serviceUsers.CreateUser(id, m.Username, m.Name, m.LastName, m.Password,
@@ -114,4 +146,43 @@ func (h *Handler) ExistEmail(c *fiber.Ctx) error {
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
+}
+
+func  (h *Handler) ValidatePassword(c *fiber.Ctx) error {
+	res := response.Model{Error: true}
+	var msg msgs.Model
+	pass := c.Query("password")
+	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
+	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
+	repositoryRPasswordPolicy := roles_password_policy.FactoryStorage(h.DB, nil, h.TxID)
+	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
+	rs := []string{"50602690-B91F-4567-9A8D-A812B37A87BF"}
+	pp, err :=servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
+	if err == nil {
+		logger.Error.Println("couldn't get role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	if pp == nil {
+		logger.Error.Println("don't exists role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	var result bool
+	for _, policy := range pp {
+		valid, cod, err := serviceUsers.ValidatePasswordPolicy(pass,policy.MaxLength, policy.MinLength,policy.Alpha,
+					policy.Digits, policy.Special, policy.UpperCase,policy.LowerCase,policy.Enable)
+		if err != nil {
+			logger.Error.Println("couldn't get password to validate")
+			res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+			return c.Status(http.StatusAccepted).JSON(res)
+		}
+		result = valid
+	}
+
+	res.Data = result
+	res.Code, res.Type, res.Msg = msg.GetByCode(29)
+	res.Error = false
+	return c.Status(http.StatusOK).JSON(res)
+
 }

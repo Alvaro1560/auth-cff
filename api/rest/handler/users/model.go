@@ -11,3 +11,4 @@ type UserRequest struct {
 	Password             string  `json:"password,omitempty"`
 	PasswordConfirm      string  `json:"password_confirm,omitempty"`
 }
+

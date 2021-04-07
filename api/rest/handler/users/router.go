@@ -13,4 +13,5 @@ func UserRouter(app *fiber.App, db *sqlx.DB, tx string) {
 	v1.Post("/register", usr.CreateUser)
 	v1.Get("/user-exist", usr.ExistUser)
 	v1.Get("/email-exist", usr.ExistEmail)
+	v1.Get("/password-validate", usr.ValidatePassword)
 }

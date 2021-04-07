@@ -2,6 +2,8 @@ package users
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/sendmail"
@@ -231,7 +233,39 @@ func (s Service) GetUserByUsernameAndIdentificationNumber(username string, ident
 	return m, 29, nil
 }
 
-func (s Service) ValidatePassword(id, password string) (bool, int, error) {
-	//TODO Politicas
-	return true, 29, nil
+
+func (s Service) ValidatePasswordPolicy(password string, maxLength, minLength, alpha , digits , special ,
+	upperCase , lowerCase int, enable bool) (bool, int, error) {
+	if !enable {
+		return true, 29, nil
+	}
+	var responseValidate bool
+
+	if len(password) > maxLength || len(password) < minLength {
+		return responseValidate, 77, fmt.Errorf("longitud")
+	}
+	er := regexp.MustCompile(fmt.Sprintf("((.*[a-zA-Z]){%d})", alpha))
+	if !er.Match([]byte(password)) {
+		return responseValidate, 78, fmt.Errorf("alpha")
+	}
+	er = regexp.MustCompile(fmt.Sprintf("((.*[0-9]){%d})", digits))
+	if !er.Match([]byte(password)) {
+		return responseValidate, 79, fmt.Errorf("digits")
+	}
+	er = regexp.MustCompile(fmt.Sprintf("((.*[a-z]){%d})", upperCase))
+	if !er.Match([]byte(password)) {
+		return responseValidate, 89, fmt.Errorf("lowercase")
+	}
+	er = regexp.MustCompile(fmt.Sprintf("((.*[A-Z]){%d})", lowerCase))
+	if !er.Match([]byte(password)) {
+		return responseValidate,81, fmt.Errorf("uppercase")
+	}
+	er = regexp.MustCompile("((.*(\\-|\\_|\\`|\\~|\\!|\\@|\\#|\\$|\\%|\\^|\\&|\\*|\\(|\\)|\\+|\\=|\\[|\\{|\\]|\\}|\\||\\'|\\<|\\,|\\.|\\>|\\?|\\/|\"|\\;|\\:))){" + strconv.Itoa(special) + "}")
+	if !er.Match([]byte(password)) {
+		return responseValidate, 82, fmt.Errorf("special")
+	}
+	responseValidate = true
+	return responseValidate, 29, nil
+
 }
+
