@@ -64,7 +64,7 @@ func (h *Handler) CreateUser(c *fiber.Ctx) error {
 	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
 	rs := []string{"50602690-B91F-4567-9A8D-A812B37A87BF"}
 	pp, err :=servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
-	if err == nil {
+	if err != nil {
 		logger.Error.Println("couldn't get role to validate passwordPolicy")
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
@@ -158,7 +158,7 @@ func  (h *Handler) ValidatePassword(c *fiber.Ctx) error {
 	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
 	rs := []string{"50602690-B91F-4567-9A8D-A812B37A87BF"}
 	pp, err :=servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
-	if err == nil {
+	if err != nil {
 		logger.Error.Println("couldn't get role to validate passwordPolicy")
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
