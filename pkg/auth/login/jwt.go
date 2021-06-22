@@ -18,6 +18,8 @@ var (
 	signKey *rsa.PrivateKey
 )
 
+
+
 // JWT personzalizado
 type jwtCustomClaims struct {
 	User      models.User `json:"user"`

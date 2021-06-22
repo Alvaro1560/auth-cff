@@ -2,7 +2,7 @@ package login
 
 import (
 	"fmt"
-	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/encryp"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"strings"
 
 	"github.com/google/uuid"
@@ -40,11 +40,10 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 	}
 
 	if m.ClientID == 2 {
-		encryp.ExampleNewGCMEncrypter(Password)
-		//encryp.ExampleNewGCMDecrypter(Password)
+		ciphers.Encrypt(Password)
 
 	} else if m.ClientID == 9925 {
-		infoByte, err := encryp.DecryptGCM(Password, "KEYITC")
+		infoByte, err := ciphers.Decrypt(Password)
 		if err != nil {
 			logger.Error.Println(s.TxID, " - don't meet validations:", err)
 			return token, 15, err
