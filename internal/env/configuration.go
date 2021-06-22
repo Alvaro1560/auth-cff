@@ -2,6 +2,7 @@ package env
 
 import (
 	"encoding/json"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -70,5 +71,10 @@ func fromFile() {
 		if config.DB.Engine == "" {
 			log.Fatal("no se ha cargado la información de configuración")
 		}
+		password, err  := ciphers.Decrypt(config.DB.Password)
+		if err != nil {
+			log.Fatalf("no se pudo obtener password: %s", err.Error())
+		}
+		config.DB.Password =  string(password)
 	})
 }
