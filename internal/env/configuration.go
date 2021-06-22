@@ -29,6 +29,7 @@ type App struct {
 	RSAPrivateKey     string `json:"rsa_private_key"`
 	RSAPublicKey      string `json:"rsa_public_key"`
 	LoggerHttp        bool   `json:"logger_http"`
+	IsCipher 	  bool   `json:"is_cipher"`
 }
 
 type DB struct {
@@ -71,10 +72,14 @@ func fromFile() {
 		if config.DB.Engine == "" {
 			log.Fatal("no se ha cargado la información de configuración")
 		}
-		password, err  := ciphers.Decrypt(config.DB.Password)
-		if err != nil {
-			log.Fatalf("no se pudo obtener password: %s", err.Error())
+		
+		if config.App.IsCipher {
+			password, err  := ciphers.Decrypt(config.DB.Password)
+			if err != nil {
+				log.Fatalf("no se pudo obtener password: %s", err.Error())
+			}
+			config.DB.Password =  string(password)
 		}
-		config.DB.Password =  string(password)
+
 	})
 }

@@ -9,38 +9,45 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 )
 
-var secretKey string
+
+var (
+	secretKey string
+)
 
 func init() {
-	//TODO get SecretKey
-	secretKey = "secret"
+	signBytesPublic, err := ioutil.ReadFile("../rsa/app.rsa.pub")
+	if err != nil {
+		log.Printf("leyendo el archivo privado de firma: %v", err)
+	}
+	secretKey = string(signBytesPublic)
 }
 
 // EncryptGCM cifra un contenido, recibe el texto a cifrar y la llave.
 func Encrypt(textToEncrypt string) string {
 	key := to32Bytes(secretKey)
 	if len(key) != 32 {
-		//logger.Error.Printf("se intentó cifrar con EncryptGCM un contenido con una clave de un tamaño diferente a 32 bytes")
+		log.Printf("se intentó cifrar con EncryptGCM un contenido con una clave de un tamaño diferente a 32 bytes")
 		return ""
 	}
-
-	c, err := aes.NewCipher(key[:])
+	c, err := aes.NewCipher(key)
 	if err != nil {
-		//logger.Error.Printf("no se pudo crear el cifrado aes.NewCipher en EncryptGCM: %v", err)
+		log.Printf("no se pudo crear el cifrado aes.NewCipher en EncryptGCM: %v", err)
 		return ""
 	}
 
 	aesGCM, err := cipher.NewGCM(c)
 	if err != nil {
-		//logger.Error.Printf("no se pudo crear el cifrado ciphers.NewGCM en EncryptGCM: %v", err)
+		log.Printf("no se pudo crear el cifrado ciphers.NewGCM en EncryptGCM: %v", err)
 		return ""
 	}
 
 	nonce := make([]byte, aesGCM.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		//logger.Error.Printf("no se pudo leer el contenido de rand.Reader al tratar de cifrar un contenido con EncryptGCM: %v", err)
+		log.Printf("no se pudo leer el contenido de rand.Reader al tratar de cifrar un contenido con EncryptGCM: %v", err)
 		return ""
 	}
 
@@ -51,24 +58,24 @@ func Encrypt(textToEncrypt string) string {
 func Decrypt(encryptedString string) ([]byte, error) {
 	key := to32Bytes(secretKey)
 	if len(key) != 32 {
-		//logger.Error.Printf("se intentó cifrar con EncryptGCM un contenido con una clave de un tamaño diferente a 32 bytes")
+		log.Printf("se intentó cifrar con EncryptGCM un contenido con una clave de un tamaño diferente a 32 bytes")
 		return nil, errors.New("la clave de cifrado debe ser de 32 bytes")
 	}
 
 	ciphertext, err := base64.StdEncoding.DecodeString(encryptedString)
 	if err != nil {
-		//logger.Error.Printf("no se pudo hacer decode del texto cifrado a un slice de bytes base64Decode en DecryptGCM: %v", err)
+		log.Printf("no se pudo hacer decode del texto cifrado a un slice de bytes base64Decode en DecryptGCM: %v", err)
 		return nil, err
 	}
 	c, err := aes.NewCipher(key[:])
 	if err != nil {
-		//logger.Error.Printf("no se pudo crear el cifrado aes.NewCipher en DecryptGCM: %v", err)
+		log.Printf("no se pudo crear el cifrado aes.NewCipher en DecryptGCM: %v", err)
 		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(c)
 	if err != nil {
-		//logger.Error.Printf("no se pudo crear el cifrado ciphers.NewGCM en DencryptGCM: %v", err)
+		log.Printf("no se pudo crear el cifrado ciphers.NewGCM en DencryptGCM: %v", err)
 		return nil, err
 	}
 
