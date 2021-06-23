@@ -43,12 +43,12 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 		ciphers.Encrypt(Password)
 
 	} else if m.ClientID == 9925 {
-		infoByte, err := ciphers.Decrypt(Password)
-		if err != nil {
-			logger.Error.Println(s.TxID, " - don't meet validations:", err)
-			return token, 15, err
+		infoByte :=  ciphers.Decrypt(Password)
+		if infoByte == "" {
+			logger.Error.Println(s.TxID, " - don't meet validations:")
+			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
 		}
-		m.Password = string(infoByte)
+		m.Password = infoByte
 
 	} else {
 		logger.Error.Println(s.TxID, " - client not configured: ")

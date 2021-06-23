@@ -74,11 +74,9 @@ func fromFile() {
 		}
 		
 		if config.App.IsCipher {
-			password, err  := ciphers.Decrypt(config.DB.Password)
-			if err != nil {
-				log.Fatalf("no se pudo obtener password: %s", err.Error())
+			if  config.DB.Password =  ciphers.Decrypt(config.DB.Password) ; config.DB.Password  == "" {
+				log.Fatal("no se pudo obtener config.DB.Password Decrypt")
 			}
-			config.DB.Password =  string(password)
 		}
 
 	})

@@ -33,16 +33,22 @@ func (h *Handler) decrypt(c *fiber.Ctx) error {
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
-	rsDecrypt , err := ciphers.Decrypt(m.TextDecrypt)
-	cr := CipherResponse{
-		Text: string(rsDecrypt),
+	if m.TextDecrypt == "" {
+		res.Data =  CipherResponse{ Text: "" }
+		res.Error = false
+		return c.Status(http.StatusOK).JSON(res)
 	}
-	if err != nil  {
+	rsDecrypt := ciphers.Decrypt(m.TextDecrypt)
+	cr := CipherResponse{
+		Text: rsDecrypt,
+	}
+	if rsDecrypt == ""  {
 		logger.Error.Println(err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	res.Data = cr
+	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
 }
 

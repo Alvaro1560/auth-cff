@@ -1,98 +1,41 @@
 package ciphers
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/md5"
-	"crypto/rand"
-	"encoding/base64"
-	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
+	openssl "github.com/Luzifer/go-openssl/v4"
 )
 
-
-var (
-	secretKey string
-)
+var secretKey string
 
 func init() {
-	signBytesPublic, err := ioutil.ReadFile("../rsa/app.rsa.pub")
-	if err != nil {
-		log.Printf("leyendo el archivo privado de firma: %v", err)
-	}
-	secretKey = string(signBytesPublic)
+	//TODO get SecretKey
+	secretKey = "secret"
 }
 
-// EncryptGCM cifra un contenido, recibe el texto a cifrar y la llave.
-func Encrypt(textToEncrypt string) string {
-	key := to32Bytes(secretKey)
-	if len(key) != 32 {
-		log.Printf("se intentó cifrar con EncryptGCM un contenido con una clave de un tamaño diferente a 32 bytes")
-		return ""
-	}
-	c, err := aes.NewCipher(key)
+func Encrypt(strToEncrypt string) string{
+
+	o := openssl.New()
+
+	enc, err := o.EncryptBytes(secretKey, []byte(strToEncrypt), openssl.BytesToKeyMD5)
 	if err != nil {
-		log.Printf("no se pudo crear el cifrado aes.NewCipher en EncryptGCM: %v", err)
+		fmt.Printf("An error occurred: %s\n", err)
 		return ""
 	}
 
-	aesGCM, err := cipher.NewGCM(c)
-	if err != nil {
-		log.Printf("no se pudo crear el cifrado ciphers.NewGCM en EncryptGCM: %v", err)
-		return ""
-	}
-
-	nonce := make([]byte, aesGCM.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		log.Printf("no se pudo leer el contenido de rand.Reader al tratar de cifrar un contenido con EncryptGCM: %v", err)
-		return ""
-	}
-
-	return base64.StdEncoding.EncodeToString(aesGCM.Seal(nonce, nonce, []byte(textToEncrypt), nil))
+	return string(enc)
 }
 
-// DecryptGCM decifra un contenido con una clave de 32 bytes
-func Decrypt(encryptedString string) ([]byte, error) {
-	key := to32Bytes(secretKey)
-	if len(key) != 32 {
-		log.Printf("se intentó cifrar con EncryptGCM un contenido con una clave de un tamaño diferente a 32 bytes")
-		return nil, errors.New("la clave de cifrado debe ser de 32 bytes")
-	}
 
-	ciphertext, err := base64.StdEncoding.DecodeString(encryptedString)
+func Decrypt(strToDecrypt string) string{
+	o := openssl.New()
+	dec, err := o.DecryptBytes(secretKey, []byte(strToDecrypt), openssl.BytesToKeyMD5)
 	if err != nil {
-		log.Printf("no se pudo hacer decode del texto cifrado a un slice de bytes base64Decode en DecryptGCM: %v", err)
-		return nil, err
+		fmt.Printf("An error occurred: %s\n", err)
+		return ""
 	}
-	c, err := aes.NewCipher(key[:])
-	if err != nil {
-		log.Printf("no se pudo crear el cifrado aes.NewCipher en DecryptGCM: %v", err)
-		return nil, err
-	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		log.Printf("no se pudo crear el cifrado ciphers.NewGCM en DencryptGCM: %v", err)
-		return nil, err
-	}
-
-	nonceSize := gcm.NonceSize()
-	if len(ciphertext) < nonceSize {
-		return nil, errors.New("ciphertext too short")
-	}
-
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-
-	return gcm.Open(nil, nonce, ciphertext, nil)
-}
-
-func to32Bytes(s string) []byte {
-	return []byte(fmt.Sprintf("%x", md5.Sum([]byte(s))))
+	return  string(dec)
 }
 
 func GetSecret() string {
-	return secretKey
+	return  secretKey
 }
