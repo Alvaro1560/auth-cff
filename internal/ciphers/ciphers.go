@@ -9,7 +9,7 @@ var secretKey string
 
 func init() {
 	//TODO get SecretKey
-	secretKey = "secret"
+	secretKey = "204812730425442A472D2F423F452847"
 }
 
 func Encrypt(strToEncrypt string) string{

@@ -3,6 +3,7 @@ package register
 import (
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/password"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles_password_policy"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
@@ -40,6 +41,23 @@ func (h *Handler) CreateUser(c *fiber.Ctx) error {
 	} else {
 		id = uuid.New().String()
 	}
+
+	passByte :=  ciphers.Decrypt(m.Password)
+	if passByte == "" {
+		logger.Error.Printf("no se pudo leer el Modelo User en login: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	m.Password = passByte
+
+	passConfirmByte :=  ciphers.Decrypt(m.PasswordConfirm)
+	if passConfirmByte == "" {
+		logger.Error.Printf("no se pudo leer el Modelo User en login: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	m.PasswordConfirm = passConfirmByte
+
 	if m.Password != m.PasswordConfirm {
 		logger.Error.Printf("password y passwordConfirm no coinciden: %v ", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(74)

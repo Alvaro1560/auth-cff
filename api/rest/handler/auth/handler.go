@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles_password_policy"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
 	"net/http"
@@ -134,6 +135,13 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
 	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
 	var result bool
+	passByte :=  ciphers.Decrypt(m.Password)
+	if passByte == "" {
+		logger.Error.Println("couldn't get password to validate")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	m.Password = passByte
 	for _, policy := range pp {
 		valid, cod, err := serviceUsers.ValidatePasswordPolicy(m.Password,policy.MaxLength, policy.MinLength,policy.Alpha,
 			policy.Digits, policy.Special, policy.UpperCase,policy.LowerCase,policy.Enable)
