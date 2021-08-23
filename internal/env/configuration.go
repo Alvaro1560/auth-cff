@@ -2,6 +2,7 @@ package env
 
 import (
 	"encoding/json"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -28,6 +29,7 @@ type App struct {
 	RSAPrivateKey     string `json:"rsa_private_key"`
 	RSAPublicKey      string `json:"rsa_public_key"`
 	LoggerHttp        bool   `json:"logger_http"`
+	IsCipher 	  bool   `json:"is_cipher"`
 }
 
 type DB struct {
@@ -70,5 +72,12 @@ func fromFile() {
 		if config.DB.Engine == "" {
 			log.Fatal("no se ha cargado la información de configuración")
 		}
+		
+		if config.App.IsCipher {
+			if  config.DB.Password =  ciphers.Decrypt(config.DB.Password) ; config.DB.Password  == "" {
+				log.Fatal("no se pudo obtener config.DB.Password Decrypt")
+			}
+		}
+
 	})
 }

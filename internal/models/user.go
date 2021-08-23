@@ -4,12 +4,12 @@ import "time"
 
 type User struct {
 	ID                     string     `json:"id" db:"id" valid:"required,uuid"`
-	Username               string     `json:"username" db:"username" valid:"required"`
-	Name                   string     `json:"name,omitempty" db:"name" valid:"required"`
-	LastName               string     `json:"lastname,omitempty" db:"lastname" valid:"required"`
+	Username               string     `json:"username" db:"username" valid:"required,stringlength(5|50),matches(^[a-zA-Z0-9_]+$)"`
+	Name                   string     `json:"name,omitempty" db:"name" valid:"required,stringlength(0|255)"`
+	LastName               string     `json:"lastname,omitempty" db:"lastname" valid:"required,stringlength(0|255)"`
 	Password               string     `json:"password,omitempty" db:"password" valid:"-"`
-	EmailNotifications     string     `json:"email_notifications,omitempty" db:"email_notifications" valid:"required,email"`
-	IdentificationNumber   string     `json:"identification_number,omitempty" db:"identification_number" valid:"required"`
+	EmailNotifications     string     `json:"email_notifications,omitempty" db:"email_notifications" valid:"required,email,stringlength(5|255)"`
+	IdentificationNumber   string     `json:"identification_number,omitempty" db:"identification_number" valid:"required,stringlength(0|255)"`
 	IdentificationType     string     `json:"identification_type,omitempty" db:"identification_type" valid:"required"`
 	Status                 int        `json:"status,omitempty" db:"status" valid:"-"`
 	FailedAttempts         int        `json:"failed_attempts,omitempty" db:"failed_attempts" valid:"-"`

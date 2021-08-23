@@ -2,7 +2,7 @@ package login
 
 import (
 	"fmt"
-	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/encryp"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"strings"
 
 	"github.com/google/uuid"
@@ -40,16 +40,23 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 	}
 
 	if m.ClientID == 2 {
-		encryp.ExampleNewGCMEncrypter(Password)
-		//encryp.ExampleNewGCMDecrypter(Password)
+		ciphers.Encrypt(Password)
 
-	} else if m.ClientID == 9925 {
-		infoByte, err := encryp.DecryptGCM(Password, "KEYITC")
-		if err != nil {
-			logger.Error.Println(s.TxID, " - don't meet validations:", err)
-			return token, 15, err
+	} else if m.ClientID == 9925 || m.ClientID == 9926 {
+		infoByte :=  ciphers.Decrypt(Password)
+		if infoByte == "" {
+			logger.Error.Println(s.TxID, " - don't meet validations:")
+			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
 		}
-		m.Password = string(infoByte)
+		m.Password = infoByte
+
+		userByte :=  ciphers.Decrypt(id)
+		if userByte == "" {
+			logger.Error.Println(s.TxID, " - don't meet validations:")
+			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
+		}
+		m.ID = userByte
+		m.Username = m.ID
 
 	} else {
 		logger.Error.Println(s.TxID, " - client not configured: ")
