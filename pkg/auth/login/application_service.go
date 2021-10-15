@@ -41,8 +41,8 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 
 	if m.ClientID == 2 {
 		ciphers.Encrypt(Password)
-
-	} else if m.ClientID == 9925 || m.ClientID == 9926 {
+	//ITC
+	} else if m.ClientID == 9925 {
 		infoByte :=  ciphers.Decrypt(Password)
 		if infoByte == "" {
 			logger.Error.Println(s.TxID, " - don't meet validations:")
@@ -51,6 +51,22 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 		m.Password = infoByte
 
 		userByte :=  ciphers.Decrypt(id)
+		if userByte == "" {
+			logger.Error.Println(s.TxID, " - don't meet validations:")
+			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
+		}
+		m.ID = userByte
+		m.Username = m.ID
+		//WebClient WebConfig
+	} else if m.ClientID == 9926 || m.ClientID == 9927 {
+		infoByte :=  ciphers.DecryptKeyTemp(Password)
+		if infoByte == "" {
+			logger.Error.Println(s.TxID, " - don't meet validations:")
+			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
+		}
+		m.Password = infoByte
+
+		userByte :=  ciphers.DecryptKeyTemp(id)
 		if userByte == "" {
 			logger.Error.Println(s.TxID, " - don't meet validations:")
 			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
@@ -163,6 +179,7 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 	}
 	transact.RegisterLogUsr("success-login", HostName, RealIP, RealIP, usr.ID)
 	usr.SessionID = uuid.New().String()
+	usr.ClientID = m.ClientID
 	usr.RealIP = m.RealIP
 	usr.Password = ""
 	usr.Colors.Primary, usr.Colors.Secondary, usr.Colors.Tertiary = s.getColors("")
