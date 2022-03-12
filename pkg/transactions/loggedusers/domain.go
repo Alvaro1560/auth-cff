@@ -10,9 +10,9 @@ import (
 type TxLoggedUser struct {
 	ID        int64     `json:"id" db:"id" valid:"-"`
 	Event     string    `json:"event" db:"event" valid:"required"`
-	HostName  string    `json:"host_name" db:"host_name" valid:"required"`
-	IpRequest string    `json:"ip_request" db:"ip_request" valid:"required"`
-	IpRemote  string    `json:"ip_remote" db:"ip_remote" valid:"required"`
+	HostName  string    `json:"host_name" db:"host_name" valid:"-"`
+	IpRequest string    `json:"ip_request" db:"ip_request" valid:"-"`
+	IpRemote  string    `json:"ip_remote" db:"ip_remote" valid:"-"`
 	UserId    string    `json:"user_id" db:"user_id" valid:"required"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
