@@ -6,6 +6,7 @@ import (
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/api/rest/handler/ciphers"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/api/rest/handler/look_and_feel"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/api/rest/handler/users"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/api/rest/handler/validation_email"
 
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
@@ -38,5 +39,7 @@ func routes(db *sqlx.DB, loggerHttp bool, allowedOrigins string) *fiber.App {
 	register.UserRouter(app, db, TxID)
 	look_and_feel.LookAndFeel(app, db, TxID)
 	ciphers.CipherRouter(app, db, TxID)
+	validation_email.ValidationEmailRouter(app, db, TxID)
+	
 	return app
 }
