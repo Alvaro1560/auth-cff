@@ -2,6 +2,7 @@ package auth
 
 import (
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/env"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles_password_policy"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
 	"net/http"
@@ -163,6 +164,33 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	}
 	res.Data = true
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
+	res.Error = false
+	return c.Status(http.StatusOK).JSON(res)
+}
+
+func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
+	res := response.Model{Error: true}
+	var msg msgs.Model
+	e := env.NewConfiguration()
+	m := LoginRequest{
+		ID:       "",
+		Username: e.App.User,
+		Password: e.App.Password,
+		ClientID: 2,
+		HostName: "",
+		RealIP:   "",
+	}
+
+	m.RealIP = c.IP()
+	serviceLogin := login.NewLoginService(h.DB, h.TxID)
+	token, cod, err := serviceLogin.Login(m.ID, m.Username, m.Password, m.ClientID, m.HostName, m.RealIP)
+	if err != nil {
+		logger.Warning.Printf("no se pudo leer el Modelo User en login: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	res.Data = token
+	res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
 }
