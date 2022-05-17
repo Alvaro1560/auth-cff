@@ -54,6 +54,7 @@ type Smtp struct {
 type Template struct {
 	EmailCode        string `json:"email_code"`
 	EmailCodeSubject string `json:"email_code_subject"`
+	EmailSender      string `json:"email_sender"`
 }
 
 func NewConfiguration() *configuration {

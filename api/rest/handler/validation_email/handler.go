@@ -54,7 +54,7 @@ func (h *handlerValidationEmail) sendCode(c *fiber.Ctx) error {
 	tos := []string{m.Email}
 
 	email := sendmail.Model{
-		From:        "no-reply@e-capture.co",
+		From:        e.Template.EmailSender,
 		To:          tos,
 		CC:          nil,
 		Subject:     e.Template.EmailCodeSubject,

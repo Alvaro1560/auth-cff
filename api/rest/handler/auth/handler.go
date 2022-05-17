@@ -24,7 +24,6 @@ type Handler struct {
 	TxID string
 }
 
-//func Login(c echo.Context) error {
 func (h *Handler) LoginV3(c *fiber.Ctx) error {
 	res := response.Model{Error: true}
 	var msg msgs.Model
@@ -121,7 +120,7 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	repositoryRPasswordPolicy := roles_password_policy.FactoryStorage(h.DB, nil, h.TxID)
 	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
 	rs := []string{"50602690-B91F-4567-9A8D-A812B37A87BF"}
-	pp, err :=servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
+	pp, err := servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
 	if err != nil {
 		logger.Error.Println("couldn't get role to validate passwordPolicy")
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
@@ -135,7 +134,7 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
 	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
 	var result bool
-	passByte :=  ciphers.Decrypt(m.Password)
+	passByte := ciphers.Decrypt(m.Password)
 	if passByte == "" {
 		logger.Error.Println("couldn't get password to validate")
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
@@ -143,8 +142,8 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	}
 	m.Password = passByte
 	for _, policy := range pp {
-		valid, cod, err := serviceUsers.ValidatePasswordPolicy(m.Password,policy.MaxLength, policy.MinLength,policy.Alpha,
-			policy.Digits, policy.Special, policy.UpperCase,policy.LowerCase,policy.Enable)
+		valid, cod, err := serviceUsers.ValidatePasswordPolicy(m.Password, policy.MaxLength, policy.MinLength, policy.Alpha,
+			policy.Digits, policy.Special, policy.UpperCase, policy.LowerCase, policy.Enable)
 		if err != nil {
 			logger.Error.Println("couldn't get password to validate")
 			res.Code, res.Type, res.Msg = msg.GetByCode(cod)
