@@ -172,6 +172,11 @@ func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
 	res := response.Model{Error: true}
 	var msg msgs.Model
 	e := env.NewConfiguration()
+	if !e.App.Autologin {
+		res.Code, res.Type, res.Msg = msg.GetByCode(29)
+		res.Error = false
+		return c.Status(http.StatusOK).JSON(res)
+	}
 	m := LoginRequest{
 		ID:       "",
 		Username: e.App.User,

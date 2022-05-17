@@ -31,6 +31,7 @@ type App struct {
 	RSAPublicKey      string `json:"rsa_public_key"`
 	LoggerHttp        bool   `json:"logger_http"`
 	IsCipher          bool   `json:"is_cipher"`
+	Autologin         bool   `json:"autologin"`
 	User              string `json:"user"`
 	Password          string `json:"password"`
 }
