@@ -177,6 +177,20 @@ func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
 		res.Error = false
 		return c.Status(http.StatusOK).JSON(res)
 	}
+	key := Autologin{}
+
+	err := c.BodyParser(&key)
+	if err != nil {
+		logger.Error.Printf("no se pudo leer el Modelo User en login: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	if e.App.KeywordAutologin != key.Keyword {
+		res.Code, res.Type, res.Msg = msg.GetByCode(29)
+		res.Error = false
+		return c.Status(http.StatusOK).JSON(res)
+	}
+
 	m := LoginRequest{
 		ID:       "",
 		Username: e.App.User,
