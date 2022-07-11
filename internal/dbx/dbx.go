@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/env"
 
@@ -41,6 +42,10 @@ func setConnection() {
 		logger.Error.Printf("couldn't connect to database: %v", err)
 		panic(err)
 	}
+
+	dbx.SetMaxIdleConns(5)
+	dbx.SetConnMaxLifetime(2 * time.Minute)
+	dbx.SetMaxOpenConns(95)
 }
 
 func GetConnection() *sqlx.DB {

@@ -27,7 +27,6 @@ type Handler struct {
 	TxID string
 }
 
-//func Login(c echo.Context) error {
 func (h *Handler) LoginV3(c *fiber.Ctx) error {
 	res := response.Model{Error: true}
 	var msg msgs.Model
@@ -238,6 +237,52 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	}
 	res.Data = true
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
+	res.Error = false
+	return c.Status(http.StatusOK).JSON(res)
+}
+
+func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
+	res := response.Model{Error: true}
+	var msg msgs.Model
+	e := env.NewConfiguration()
+	if !e.App.Autologin {
+		res.Code, res.Type, res.Msg = msg.GetByCode(29)
+		res.Error = false
+		return c.Status(http.StatusOK).JSON(res)
+	}
+	key := Autologin{}
+
+	err := c.BodyParser(&key)
+	if err != nil {
+		logger.Error.Printf("no se pudo leer el Modelo User en login: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	if e.App.KeywordAutologin != key.Keyword {
+		res.Code, res.Type, res.Msg = msg.GetByCode(29)
+		res.Error = false
+		return c.Status(http.StatusOK).JSON(res)
+	}
+
+	m := LoginRequest{
+		ID:       "",
+		Username: e.App.User,
+		Password: e.App.Password,
+		ClientID: 2,
+		HostName: "",
+		RealIP:   "",
+	}
+
+	m.RealIP = c.IP()
+	serviceLogin := login.NewLoginService(h.DB, h.TxID)
+	token, cod, err := serviceLogin.Login(m.ID, m.Username, m.Password, m.ClientID, m.HostName, m.RealIP)
+	if err != nil {
+		logger.Warning.Printf("no se pudo leer el Modelo User en login: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	res.Data = token
+	res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
 }

@@ -32,6 +32,10 @@ type App struct {
 	UrlPortal         string `json:"url_portal"`
 	LoggerHttp        bool   `json:"logger_http"`
 	IsCipher          bool   `json:"is_cipher"`
+	KeywordAutologin  string `json:"keyword_autologin"`
+	Autologin         bool   `json:"autologin"`
+	User              string `json:"user"`
+	Password          string `json:"password"`
 }
 
 type DB struct {
@@ -53,7 +57,10 @@ type Smtp struct {
 }
 
 type Template struct {
-	Recovery string `json:"recovery"`
+	Recovery         string `json:"recovery"`
+	EmailCode        string `json:"email_code"`
+	EmailCodeSubject string `json:"email_code_subject"`
+	EmailSender      string `json:"email_sender"`
 }
 
 func NewConfiguration() *configuration {
