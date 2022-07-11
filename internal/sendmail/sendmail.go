@@ -89,7 +89,7 @@ func (e *Model) generateTemplateMail(param map[string]string) (string, error) {
 	bf := &bytes.Buffer{}
 	tpl := &template.Template{}
 
-	tpl = template.Must(template.New("").ParseGlob("templates/*.gohtml"))
+	tpl = template.Must(template.New("").ParseGlob("notifications/*.gohtml"))
 	err := tpl.ExecuteTemplate(bf, param["TEMPLATE-PATH"], &param)
 	if err != nil {
 		logger.Error.Printf("couldn't generate template body mail: %v", err)

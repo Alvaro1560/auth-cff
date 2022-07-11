@@ -14,9 +14,10 @@ var (
 )
 
 type configuration struct {
-	App  App  `json:"app"`
-	DB   DB   `json:"db"`
-	Smtp Smtp `json:"smtp"`
+	App      App      `json:"app"`
+	DB       DB       `json:"db"`
+	Smtp     Smtp     `json:"smtp"`
+	Template Template `json:"template"`
 }
 
 type App struct {
@@ -28,8 +29,9 @@ type App struct {
 	RegisterLog       bool   `json:"register_log"`
 	RSAPrivateKey     string `json:"rsa_private_key"`
 	RSAPublicKey      string `json:"rsa_public_key"`
+	UrlPortal         string `json:"url_portal"`
 	LoggerHttp        bool   `json:"logger_http"`
-	IsCipher 	  bool   `json:"is_cipher"`
+	IsCipher          bool   `json:"is_cipher"`
 }
 
 type DB struct {
@@ -48,6 +50,10 @@ type Smtp struct {
 	Host     string `json:"host"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Template struct {
+	Recovery string `json:"recovery"`
 }
 
 func NewConfiguration() *configuration {
@@ -72,9 +78,9 @@ func fromFile() {
 		if config.DB.Engine == "" {
 			log.Fatal("no se ha cargado la información de configuración")
 		}
-		
+
 		if config.App.IsCipher {
-			if  config.DB.Password =  ciphers.Decrypt(config.DB.Password) ; config.DB.Password  == "" {
+			if config.DB.Password = ciphers.Decrypt(config.DB.Password); config.DB.Password == "" {
 				log.Fatal("no se pudo obtener config.DB.Password Decrypt")
 			}
 		}

@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/env"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/models"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/sendmail"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles_password_policy"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
 	"net/http"
-
-	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/response"
 
@@ -17,6 +19,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/logger"
+	genTemplate "gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/template"
 )
 
 type Handler struct {
@@ -79,7 +82,9 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 
 func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 	res := response.Model{Error: true}
+	e := env.NewConfiguration()
 	var msg msgs.Model
+	var parameters = make(map[string]string, 0)
 	m := ForgotPasswordRequest{}
 	err := c.BodyParser(&m)
 	if err != nil {
@@ -87,6 +92,64 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
+
+	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
+	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
+
+	user, cod, err := serviceUsers.GetUserByUsername(m.Username)
+	if err != nil {
+		logger.Error.Printf("couldn't get user by username : %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+		res.Msg = err.Error()
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if user == nil {
+		logger.Error.Printf("couldn't user with username %s", m.Username)
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+		res.Msg = err.Error()
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if m.Email != user.EmailNotifications {
+		logger.Error.Printf("El correo de confirmación no es correcto", m.Email)
+		res.Code, res.Type, res.Msg = msg.GetByCode(22)
+		res.Msg = err.Error()
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	token, cod, err := login.GenerateJWT(models.User(*user))
+	if err != nil {
+		logger.Error.Printf("no se pudo obtener modulos del usuario : ", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	parameters["@token"] = e.App.UrlPortal + "/recoverypwd?access-token=" + token
+	parameters["USER-NAME"] = user.Name + " " + user.LastName
+	var tos []string
+	tos = append(tos, user.EmailNotifications)
+
+	bodyCode, err := genTemplate.GenerateTemplateMail(parameters, e.Template.Recovery)
+	if err != nil {
+		logger.Error.Printf("couldn't generate body in notification email")
+		return err
+	}
+
+	emailCode := &sendmail.Model{}
+
+	emailCode.From = "no-reply@e-capture.co"
+	emailCode.To = tos
+	emailCode.Subject = "Recuperación de cuenta"
+	emailCode.Body = bodyCode
+
+	err = emailCode.SendMail()
+	if err != nil {
+		logger.Error.Println("error when execute send email: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(45)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
@@ -102,6 +165,17 @@ func (h *Handler) ChangePassword(c *fiber.Ctx) error {
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
+
+	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
+	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
+
+	code, err := serviceUsers.ChangePassword(m.ID, m.Password, m.PasswordConfirm)
+	if err != nil {
+		logger.Error.Printf("no se actualizar la contraseña: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
@@ -121,7 +195,7 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	repositoryRPasswordPolicy := roles_password_policy.FactoryStorage(h.DB, nil, h.TxID)
 	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
 	rs := []string{"50602690-B91F-4567-9A8D-A812B37A87BF"}
-	pp, err :=servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
+	pp, err := servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
 	if err != nil {
 		logger.Error.Println("couldn't get role to validate passwordPolicy")
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
@@ -135,7 +209,7 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
 	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
 	var result bool
-	passByte :=  ciphers.Decrypt(m.Password)
+	passByte := ciphers.Decrypt(m.Password)
 	if passByte == "" {
 		logger.Error.Println("couldn't get password to validate")
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
@@ -143,8 +217,8 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	}
 	m.Password = passByte
 	for _, policy := range pp {
-		valid, cod, err := serviceUsers.ValidatePasswordPolicy(m.Password,policy.MaxLength, policy.MinLength,policy.Alpha,
-			policy.Digits, policy.Special, policy.UpperCase,policy.LowerCase,policy.Enable)
+		valid, cod, err := serviceUsers.ValidatePasswordPolicy(m.Password, policy.MaxLength, policy.MinLength, policy.Alpha,
+			policy.Digits, policy.Special, policy.UpperCase, policy.LowerCase, policy.Enable)
 		if err != nil {
 			logger.Error.Println("couldn't get password to validate")
 			res.Code, res.Type, res.Msg = msg.GetByCode(cod)

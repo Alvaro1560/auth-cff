@@ -205,7 +205,7 @@ func (s *psql) ChangePassword(id string, password string) error {
 	if i, _ := rs.RowsAffected(); i == 0 {
 		return fmt.Errorf("ecatch:108")
 	}
-	const sqlInsert = `INSERT INTO auth.users_password_history (id ,user_id, password,created_at) VALUES (uuid_generate_v4() , :id, :password, Now()) `
+	const sqlInsert = `INSERT INTO auth.users_password_history (id ,user_id, password,created_at, id_user) VALUES (uuid_generate_v4() , :id, :password, Now(), :id) `
 
 	_, err = tx.NamedExec(sqlInsert, &m)
 	if err != nil {
