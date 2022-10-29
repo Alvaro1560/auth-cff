@@ -112,7 +112,7 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 
 	if m.Email != user.EmailNotifications {
 		logger.Error.Printf("El correo de confirmación no es correcto", m.Email)
-		res.Code, res.Type, res.Msg = msg.GetByCode(22)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		res.Msg = err.Error()
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -128,6 +128,8 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 	parameters["USER-NAME"] = user.Name + " " + user.LastName
 	var tos []string
 	tos = append(tos, user.EmailNotifications)
+
+	logger.Trace.Println(tos)
 
 	bodyCode, err := genTemplate.GenerateTemplateMail(parameters, e.Template.Recovery)
 	if err != nil {
