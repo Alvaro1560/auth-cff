@@ -29,7 +29,10 @@ type App struct {
 	RSAPrivateKey     string `json:"rsa_private_key"`
 	RSAPublicKey      string `json:"rsa_public_key"`
 	LoggerHttp        bool   `json:"logger_http"`
-	IsCipher 	  bool   `json:"is_cipher"`
+	IsCipher          bool   `json:"is_cipher"`
+	TLS               bool   `json:"tls"`
+	Cert              string `json:"cert"`
+	Key               string `json:"key"`
 }
 
 type DB struct {
@@ -72,9 +75,9 @@ func fromFile() {
 		if config.DB.Engine == "" {
 			log.Fatal("no se ha cargado la información de configuración")
 		}
-		
+
 		if config.App.IsCipher {
-			if  config.DB.Password =  ciphers.Decrypt(config.DB.Password) ; config.DB.Password  == "" {
+			if config.DB.Password = ciphers.Decrypt(config.DB.Password); config.DB.Password == "" {
 				log.Fatal("no se pudo obtener config.DB.Password Decrypt")
 			}
 		}
