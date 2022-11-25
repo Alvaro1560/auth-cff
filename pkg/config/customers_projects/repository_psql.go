@@ -99,7 +99,7 @@ func (s *psql) GetAll() ([]*Project, error) {
 func (s *psql) getProjectByRoles(roleIDs []string) ([]*string, error) {
 	var ms []*Project
 	var projects []*string
-	const sqlGetProjectByRoles = `SELECT p.id  FROM cfg.customers_projects p JOIN auth.roles_projects rp ON p.id = rp.project 
+	const sqlGetProjectByRoles = `SELECT distinct p.id  FROM cfg.customers_projects p JOIN auth.roles_projects rp ON p.id = rp.project 
 			    WHERE rp.role_id IN (%s) `
 	query := fmt.Sprintf(sqlGetProjectByRoles, helper.SliceToString(roleIDs))
 	err := s.DB.Select(&ms, query)

@@ -53,8 +53,8 @@ func (h *Handler) decrypt(c *fiber.Ctx) error {
 }
 
 //func Login(c echo.Context) error {
-func (h *Handler) getSecretKey(c *fiber.Ctx) error {
+func (h *Handler) getKeyApp(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(CipherResponse{
-		SecretKey: []byte(ciphers.GetSecret()),
+		SecretKey: []byte(ciphers.GetSecretKeyTemp()),
 	})
 }

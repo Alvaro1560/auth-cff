@@ -116,7 +116,7 @@ func (h *Handler) CreateUser(c *fiber.Ctx) error {
 	user, cod, err := serviceUsers.CreateUser(id, m.Username, m.Name, m.LastName, m.Password,
 		m.EmailNotifications, m.IdentificationNumber, m.IdentificationType)
 	if err != nil {
-		logger.Error.Println("couldn't create user")
+		logger.Error.Println("couldn't create user: ", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 		if cod == 15 {
 			er := err.Error()

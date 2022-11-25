@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "0.0.2"
+	version = "0.1.2"
 	website = "http://www.ecapture.com.co"
 	banner  = `
 ███████  ██████  █████  ████████  ██████ ██   ██ 

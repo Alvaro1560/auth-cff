@@ -5,10 +5,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Compare(id, hashedPassword, p string) bool {
+func Compare(id string, hashedPassword, p string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(p))
 	if err != nil {
-		logger.Warning.Printf("la contraseña de %s no es válida: %v", id, err)
+		logger.Warning.Printf("la contraseña de %d no es válida: %v", id, err)
 		return false
 	}
 	return true

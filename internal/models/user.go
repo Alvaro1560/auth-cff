@@ -33,6 +33,7 @@ type User struct {
 	Projects               []*string  `json:"projects,omitempty" bson:"projects"`
 	CreatedAt              time.Time  `json:"created_at,omitempty" db:"created_at"`
 	UpdatedAt              time.Time  `json:"updated_at,omitempty" db:"updated_at"`
+	UserId   	       string	  `json:"user_id,omitempty" db:"user_id"`
 }
 
 type LoggedUsers struct {

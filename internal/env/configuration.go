@@ -14,9 +14,10 @@ var (
 )
 
 type configuration struct {
-	App  App  `json:"app"`
-	DB   DB   `json:"db"`
-	Smtp Smtp `json:"smtp"`
+	App      App      `json:"app"`
+	DB       DB       `json:"db"`
+	Smtp     Smtp     `json:"smtp"`
+	Template Template `json:"template"`
 }
 
 type App struct {
@@ -28,11 +29,16 @@ type App struct {
 	RegisterLog       bool   `json:"register_log"`
 	RSAPrivateKey     string `json:"rsa_private_key"`
 	RSAPublicKey      string `json:"rsa_public_key"`
+	UrlPortal         string `json:"url_portal"`
 	LoggerHttp        bool   `json:"logger_http"`
 	IsCipher          bool   `json:"is_cipher"`
 	TLS               bool   `json:"tls"`
 	Cert              string `json:"cert"`
 	Key               string `json:"key"`
+	KeywordAutologin  string `json:"keyword_autologin"`
+	Autologin         bool   `json:"autologin"`
+	User              string `json:"user"`
+	Password          string `json:"password"`
 }
 
 type DB struct {
@@ -51,6 +57,13 @@ type Smtp struct {
 	Host     string `json:"host"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Template struct {
+	Recovery         string `json:"recovery"`
+	EmailCode        string `json:"email_code"`
+	EmailCodeSubject string `json:"email_code_subject"`
+	EmailSender      string `json:"email_sender"`
 }
 
 func NewConfiguration() *configuration {

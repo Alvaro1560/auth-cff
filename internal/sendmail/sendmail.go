@@ -3,11 +3,8 @@ package sendmail
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
-	"text/template"
-	"time"
-
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/env"
+	"html/template"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/logger"
 
@@ -16,7 +13,7 @@ import (
 
 func (e *Model) SendMail() error {
 
-	c := env.NewConfiguration()
+	smtpPort, smtpHost, smtpEmail, smtpPassword := e.getParams()
 	m := gomail.NewMessage()
 	m.SetHeader("From", e.From)
 	m.SetHeader("To", e.To...)
@@ -31,8 +28,7 @@ func (e *Model) SendMail() error {
 		m.Attach(v)
 	}
 
-	mp := c.Smtp.Port
-	d := gomail.NewDialer(c.Smtp.Host, mp, c.Smtp.Email, c.Smtp.Password)
+	d := gomail.NewDialer(smtpHost, smtpPort, smtpEmail, smtpPassword)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	err := d.DialAndSend(m)
@@ -52,45 +48,21 @@ func (e *Model) AddAttach(fn string) {
 	e.Attachments = append(e.Attachments, fn)
 }
 
-func (e *Model) SendMailNotification(template string, userID string, toMail string, subject string) {
-	myMail := Model{}
-	param := make(map[string]string)
-
-	param["TEMPLATE-PATH"] = template
-	param["user"] = userID
-	param["FECHA-EXECUTE"] = time.Now().String()
-	param["TO-MAIL"] = toMail
-	param["FROM-EMAIL"] = "no-reply@e-capture.co"
-	param["SUBJECT-EMAIL"] = subject
-
-	body, err := e.generateTemplateMail(param)
-	if err != nil {
-		logger.Error.Printf("couldn't generate body in NotificationEmail: %v", err)
-		return
-	}
-
-	email := param["TO-MAIL"]
-	var tos = []string{email}
-
-	myMail.From = param["FROM-EMAIL"]
-	myMail.To = tos
-	myMail.Subject = fmt.Sprintf(`%s`, param["SUBJECT-EMAIL"])
-	myMail.Body = body
-
-	err = myMail.SendMail()
-	if err != nil {
-		logger.Error.Printf("couldn't sendMail NotificationEmail: %v", err)
-		return
-	}
-
-	return
+func (e *Model) getParams() (int, string, string, string) {
+	c := env.NewConfiguration()
+	smtpPort := c.Smtp.Port
+	smtpHost := c.Smtp.Host
+	smtpEmail := c.Smtp.Email
+	smtpPassword := c.Smtp.Password
+	return smtpPort, smtpHost, smtpEmail, smtpPassword
 }
-func (e *Model) generateTemplateMail(param map[string]string) (string, error) {
-	bf := &bytes.Buffer{}
-	tpl := &template.Template{}
 
+func (e *Model) GenerateTemplateMail(param map[string]string) (string, error) {
+	bf := &bytes.Buffer{}
+	var tpl *template.Template
+	path := param["@TEMPLATE-PATH"]
 	tpl = template.Must(template.New("").ParseGlob("templates/*.gohtml"))
-	err := tpl.ExecuteTemplate(bf, param["TEMPLATE-PATH"], &param)
+	err := tpl.ExecuteTemplate(bf, path, &param)
 	if err != nil {
 		logger.Error.Printf("couldn't generate template body mail: %v", err)
 		return "", err

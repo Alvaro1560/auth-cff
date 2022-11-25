@@ -28,3 +28,7 @@ type ChangePasswordRequest struct {
 type PasswordPolicyRequest struct {
 	Password string `json:"password"`
 }
+
+type Autologin struct {
+	Keyword string `json:"keyword"`
+}

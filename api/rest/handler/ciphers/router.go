@@ -13,5 +13,5 @@ func CipherRouter(app *fiber.App, db *sqlx.DB, tx string) {
 	v1 := api.Group("/v1/cipher")
 	v1.Get("/encrypt/:text", cp.encrypt)
 	v1.Post("/decrypt", cp.decrypt)
-	v1.Get("/secret/:id", cp.getSecretKey)
+	v1.Get("/key-app", cp.getKeyApp)
 }

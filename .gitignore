@@ -31,7 +31,7 @@ log/
 
 # Directorios de repository (innecesarios para seguir
 repository/
-templates/
+notifications/
 System/
 
 # Directorios de key rsa
@@ -43,4 +43,4 @@ certificates/
 .idea/
 
 .idea
-/templates/
+/notifications/

@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/sendmail"
-
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/password"
 
 	"github.com/asaskevich/govalidator"
@@ -116,8 +114,8 @@ func (s Service) BlockUser(id string) error {
 		logger.Error.Printf("couldn't Block User: %v", err)
 		return err
 	}
-	myMail := &sendmail.Model{}
-	go myMail.SendMailNotification("send_mail.gohtml", s.user.ID, s.user.EmailNotifications, fmt.Sprintf("Usuario %s Bloqueado ", s.user.Name))
+	//myMail := &sendmail.Model{}
+	//go myMail.SendMail("send_mail.gohtml", s.user.ID, s.user.EmailNotifications, fmt.Sprintf("Usuario %s Bloqueado ", s.user.Name))
 
 	return nil
 }
@@ -131,8 +129,8 @@ func (s Service) UnblockUser(id string) error {
 		logger.Error.Printf("couldn't Unblock User: %v", err)
 		return err
 	}
-	myMail := &sendmail.Model{}
-	go myMail.SendMailNotification("send_mail.gohtml", s.user.ID, s.user.EmailNotifications, fmt.Sprintf("Usuario %s Desbloqueado", s.user.Name))
+	//myMail := &sendmail.Model{}
+	//go myMail.SendMailNotification("send_mail.gohtml", s.user.ID, s.user.EmailNotifications, fmt.Sprintf("Usuario %s Desbloqueado", s.user.Name))
 
 	return nil
 }
@@ -233,9 +231,8 @@ func (s Service) GetUserByUsernameAndIdentificationNumber(username string, ident
 	return m, 29, nil
 }
 
-
-func (s Service) ValidatePasswordPolicy(password string, maxLength, minLength, alpha , digits , special ,
-	upperCase , lowerCase int, enable bool) (bool, int, error) {
+func (s Service) ValidatePasswordPolicy(password string, maxLength, minLength, alpha, digits, special,
+	upperCase, lowerCase int, enable bool) (bool, int, error) {
 	if !enable {
 		return true, 29, nil
 	}
@@ -258,7 +255,7 @@ func (s Service) ValidatePasswordPolicy(password string, maxLength, minLength, a
 	}
 	er = regexp.MustCompile(fmt.Sprintf("((.*[A-Z]){%d})", lowerCase))
 	if !er.Match([]byte(password)) {
-		return responseValidate,81, fmt.Errorf("uppercase")
+		return responseValidate, 81, fmt.Errorf("uppercase")
 	}
 	er = regexp.MustCompile("((.*(\\-|\\_|\\`|\\~|\\!|\\@|\\#|\\$|\\%|\\^|\\&|\\*|\\(|\\)|\\+|\\=|\\[|\\{|\\]|\\}|\\||\\'|\\<|\\,|\\.|\\>|\\?|\\/|\"|\\;|\\:))){" + strconv.Itoa(special) + "}")
 	if !er.Match([]byte(password)) {
@@ -268,4 +265,3 @@ func (s Service) ValidatePasswordPolicy(password string, maxLength, minLength, a
 	return responseValidate, 29, nil
 
 }
-

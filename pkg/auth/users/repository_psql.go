@@ -28,8 +28,14 @@ func NewUserPsqlRepository(db *sqlx.DB, user *models.User, txID string) *psql {
 
 // Create registra en la BD
 func (s *psql) Create(m *User) error {
-	const sqlInsert = `INSERT INTO auth.users (id ,username, name, lastname, password, email_notifications, identification_number, identification_type, status, failed_attempts, change_password, is_block, is_disabled,created_at, updated_at) 
-					  VALUES (:id ,:username, :name, :lastname, :password, :email_notifications, :identification_number, :identification_type, :status, :failed_attempts, :change_password, :is_block, :is_disabled,Now(), Now()) `
+	if s.user != nil {
+		m.UserId = s.user.ID
+	} else {
+		m.UserId = m.ID
+	}
+
+	const sqlInsert = `INSERT INTO auth.users (id ,username, name, lastname, password, email_notifications, identification_number, identification_type, status, failed_attempts, change_password, is_block, is_disabled,created_at, updated_at, user_id, id_user) 
+					  VALUES (:id ,:username, :name, :lastname, :password, :email_notifications, :identification_number, :identification_type, :status, :failed_attempts, :change_password, :is_block, :is_disabled,Now(), Now(), :user_id,:user_id) `
 	rs, err := s.DB.NamedExec(sqlInsert, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't insert User: %v", err)
@@ -199,7 +205,7 @@ func (s *psql) ChangePassword(id string, password string) error {
 	if i, _ := rs.RowsAffected(); i == 0 {
 		return fmt.Errorf("ecatch:108")
 	}
-	const sqlInsert = `INSERT INTO auth.users_password_history (id ,user_id, password,created_at) VALUES (uuid_generate_v4() , :id, :password, Now()) `
+	const sqlInsert = `INSERT INTO auth.users_password_history (id ,user_id, password,created_at, id_user) VALUES (uuid_generate_v4() , :id, :password, Now(), :id) `
 
 	_, err = tx.NamedExec(sqlInsert, &m)
 	if err != nil {
