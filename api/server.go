@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/env"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/logger"
 	"log"
 	"net"
 
@@ -47,8 +48,11 @@ func (srv *server) Start() {
 	if e.App.TLS {
 		ln, _ := net.Listen("tcp", srv.listening)
 
-		cer, _ := tls.LoadX509KeyPair(e.App.Cert, e.App.Key)
-
+		cer, err := tls.LoadX509KeyPair(e.App.Cert, e.App.Key)
+		if err != nil {
+			logger.Error.Printf("error al leer los certificados, error: " + err.Error())
+			log.Fatal(err)
+		}
 		ln = tls.NewListener(ln, &tls.Config{
 			Certificates:     []tls.Certificate{cer},
 			MinVersion:       tls.VersionTLS13,
