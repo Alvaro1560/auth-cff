@@ -41,16 +41,16 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 
 	if m.ClientID == 2 {
 		ciphers.Encrypt(Password)
-	//ITC
+		//ITC
 	} else if m.ClientID == 9925 {
-		infoByte :=  ciphers.Decrypt(Password)
+		infoByte := ciphers.Decrypt(Password)
 		if infoByte == "" {
 			logger.Error.Println(s.TxID, " - don't meet validations:")
 			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
 		}
 		m.Password = infoByte
 
-		userByte :=  ciphers.Decrypt(id)
+		userByte := ciphers.Decrypt(id)
 		if userByte == "" {
 			logger.Error.Println(s.TxID, " - don't meet validations:")
 			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
@@ -59,14 +59,14 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 		m.Username = m.ID
 		//WebClient WebConfig
 	} else if m.ClientID == 9926 || m.ClientID == 9927 {
-		infoByte :=  ciphers.DecryptKeyTemp(Password)
+		infoByte := ciphers.DecryptKeyTemp(Password)
 		if infoByte == "" {
 			logger.Error.Println(s.TxID, " - don't meet validations:")
 			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
 		}
 		m.Password = infoByte
 
-		userByte :=  ciphers.DecryptKeyTemp(id)
+		userByte := ciphers.DecryptKeyTemp(id)
 		if userByte == "" {
 			logger.Error.Println(s.TxID, " - don't meet validations:")
 			return token, 15, fmt.Errorf(s.TxID, " - don't meet validations:")
@@ -186,7 +186,7 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 
 	token, cod, err = GenerateJWT(*usr)
 	if err != nil {
-		logger.Error.Printf("no se pudo obtener modulos del usuario : ", err)
+		logger.Error.Printf(s.TxID, "no se pudo obtener modulos del usuario : ", err)
 		return "", cod, err
 	}
 
@@ -211,7 +211,7 @@ func (s *Service) getUserByUsername(username string) (*models.User, int, error) 
 
 }
 
-//TODO implement countUnAuthorizedIP
+// TODO implement countUnAuthorizedIP
 func (s *Service) countUnAuthorizedIP(ip string) (int, error) {
 
 	return 29, nil
@@ -235,7 +235,7 @@ func (s *Service) ldapAuthentication(id, password string, roles []*string) ([]*s
 	groups, err := ldap.Authentication(username, bindusername, bindpassword)
 	if err != nil {
 		transact.RegisterLogUsr("unauthorized-ldap", "HostName", "IpRequest", "IpRemote", username)
-		logger.Error.Printf("no fue posible consultar la información de grupos en LDAP: %v", err)
+		logger.Error.Printf(s.TxID, "no fue posible consultar la información de grupos en LDAP: %v", err)
 		return nil, false, 103, err
 	}
 	var rls []*string
@@ -251,20 +251,20 @@ func (s *Service) ldapAuthentication(id, password string, roles []*string) ([]*s
 	return rls, groupValid, 29, nil
 }
 
-//TODO implement validatePasswordPolicies
+// TODO implement validatePasswordPolicies
 func (s *Service) validatePasswordPolicies(roles []*string) (roles_password_policy.RolesPasswordPolicy, int, error) {
 	var pp roles_password_policy.RolesPasswordPolicy
 
 	return pp, 29, nil
 }
 
-//TODO implement registerLoggedUser
+// TODO implement registerLoggedUser
 func (s *Service) registerLoggedUser(id, realIP, hostName string) (int, error) {
 
 	return 25, nil
 }
 
-//TODO implement getColors
+// TODO implement getColors
 func (s *Service) getColors(project string) (string, string, string) {
 
 	return "#353A48", "#039be5", "#262933"
