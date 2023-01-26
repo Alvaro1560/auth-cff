@@ -43,7 +43,7 @@ func init() {
 
 	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
 	if err != nil {
-		logger.Error.Printf("", "realizando el parse en jwt RSA public: %s", err)
+		logger.Error.Printf("realizando el parse en jwt RSA public: %s", err)
 	}
 }
 
@@ -67,6 +67,7 @@ func jwtError(c *fiber.Ctx, err error) error {
 }
 
 func GetUser(c *fiber.Ctx) (*models.User, error) {
+
 	bearer := c.Get("Authorization")
 	tkn := bearer[7:]
 
@@ -82,24 +83,24 @@ func GetUser(c *fiber.Ctx) (*models.User, error) {
 			vErr := err.(*jwt.ValidationError)
 			switch vErr.Errors {
 			case jwt.ValidationErrorExpired:
-				logger.Warning.Printf("", "token expirado: %v", err)
+				logger.Warning.Printf("token expirado: %v", err)
 				return u, err
 			default:
-				logger.Warning.Printf("", "Error de validacion del token: %v", err)
+				logger.Warning.Printf("Error de validacion del token: %v", err)
 				return u, err
 			}
 		default:
-			logger.Warning.Printf("", "Error al procesar el token: %v", err)
+			logger.Warning.Printf("Error al procesar el token: %v", err)
 			return u, err
 		}
 	}
 	u = token.Claims.(*jwtCustomClaims).User
 	if !token.Valid {
-		logger.Warning.Printf("", "Token no Valido: %v", err)
+		logger.Warning.Printf("Token no Valido: %v", err)
 		return u, fmt.Errorf("Token no Valido")
 	}
 	if c.IP() != u.RealIP {
-		logger.Warning.Printf("", "Token creado en un origen diferente : %v", err)
+		logger.Warning.Printf("Token creado en un origen diferente : %v", err)
 		return u, fmt.Errorf("Token creado en un origen diferente")
 	}
 	return u, nil

@@ -14,7 +14,7 @@ func GenerateTemplateMail(param map[string]string, path string) (string, error) 
 	tpl = template.Must(template.New("").ParseGlob("notifications/*.gohtml"))
 	err := tpl.ExecuteTemplate(bf, path, &param)
 	if err != nil {
-		logger.Error.Printf("", "couldn't generate template body email: %v", err)
+		logger.Error.Printf("couldn't generate template body email: %v", err)
 		return "", err
 	}
 	return bf.String(), err

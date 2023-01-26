@@ -33,7 +33,7 @@ func (e *Model) SendMail() error {
 
 	err := d.DialAndSend(m)
 	if err != nil {
-		logger.Error.Printf("", "couldn't emil to: %s, subject: %s, %v", e.To, e.Subject, err)
+		logger.Error.Printf("couldn't emil to: %s, subject: %s, %v", e.To, e.Subject, err)
 		return err
 	}
 
@@ -64,7 +64,7 @@ func (e *Model) GenerateTemplateMail(param map[string]string) (string, error) {
 	tpl = template.Must(template.New("").ParseGlob("templates/*.gohtml"))
 	err := tpl.ExecuteTemplate(bf, path, &param)
 	if err != nil {
-		logger.Error.Printf("", "couldn't generate template body mail: %v", err)
+		logger.Error.Printf("couldn't generate template body mail: %v", err)
 		return "", err
 	}
 	return bf.String(), nil
