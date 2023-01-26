@@ -111,7 +111,7 @@ func (s Service) BlockUser(id string) error {
 	}
 	err := s.repository.BlockUser(id)
 	if err != nil {
-		logger.Error.Printf("couldn't Block User: %v", err)
+		logger.Error.Printf(s.txID, "couldn't Block User: %v", err)
 		return err
 	}
 	//myMail := &sendmail.Model{}
@@ -122,11 +122,11 @@ func (s Service) BlockUser(id string) error {
 func (s Service) UnblockUser(id string) error {
 	if !govalidator.IsUUID(id) {
 		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("id isn't uuid"))
-		return fmt.Errorf("id isn't uuid")
+		return fmt.Errorf(s.txID, "id isn't uuid")
 	}
 	err := s.repository.UnblockUser(id)
 	if err != nil {
-		logger.Error.Printf("couldn't Unblock User: %v", err)
+		logger.Error.Printf(s.txID, "couldn't Unblock User: %v", err)
 		return err
 	}
 	//myMail := &sendmail.Model{}

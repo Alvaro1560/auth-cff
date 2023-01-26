@@ -32,7 +32,7 @@ func (h *handlerValidationEmail) sendCode(c *fiber.Ctx) error {
 
 	err := c.BodyParser(&m)
 	if err != nil {
-		logger.Error.Printf("couldn't bind model validate email: %v", err)
+		logger.Error.Printf(h.TxID, "couldn't bind model validate email: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -45,7 +45,7 @@ func (h *handlerValidationEmail) sendCode(c *fiber.Ctx) error {
 
 	codVerify, code, err := srvUser.SrvVerificationEmail.CreateVerificationEmail(m.Email, verifiedCode, "", nil)
 	if err != nil {
-		logger.Error.Printf("couldn't create verify code: %v", err)
+		logger.Error.Printf(h.TxID, "couldn't create verify code: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -64,14 +64,14 @@ func (h *handlerValidationEmail) sendCode(c *fiber.Ctx) error {
 	}
 	tpl, err := email.GenerateTemplateMail(parameters)
 	if err != nil {
-		logger.Error.Println("error when parse template: %v", err)
+		logger.Error.Println(h.TxID, "error when parse template: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(86)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	email.Body = tpl
 	err = email.SendMail()
 	if err != nil {
-		logger.Error.Println("error when execute send email: %v", err)
+		logger.Error.Println(h.TxID, "error when execute send email: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(86)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -90,7 +90,7 @@ func (h *handlerValidationEmail) verifyCode(c *fiber.Ctx) error {
 
 	err := c.BodyParser(&m)
 	if err != nil {
-		logger.Error.Printf("couldn't bind model verification: %v", err)
+		logger.Error.Printf(h.TxID, "couldn't bind model verification: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -98,18 +98,18 @@ func (h *handlerValidationEmail) verifyCode(c *fiber.Ctx) error {
 
 	dataVerify, code, err := srvUser.SrvVerificationEmail.GetVerificationEmailByID(m.Id)
 	if err != nil {
-		logger.Error.Printf("couldn't get email verification: %v", err)
+		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
 	if dataVerify.ID == 0 {
-		logger.Error.Printf("couldn't get email verification: %v", err)
+		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	if !password.Compare(dataVerify.Email, dataVerify.VerificationCode, m.Code) {
-		logger.Error.Printf("the verification code is not correct: %v", err)
+		logger.Error.Printf(h.TxID, "the verification code is not correct: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(10)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -121,7 +121,7 @@ func (h *handlerValidationEmail) verifyCode(c *fiber.Ctx) error {
 	dateTime := time.Now()
 	_, code, err = srvUser.SrvVerificationEmail.UpdateVerificationEmail(dataVerify.ID, dataVerify.Email, "", dataVerify.Identification, &dateTime)
 	if err != nil {
-		logger.Error.Printf("couldn't get email verification: %v", err)
+		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}

@@ -18,8 +18,6 @@ var (
 	signKey *rsa.PrivateKey
 )
 
-
-
 // JWT personzalizado
 type jwtCustomClaims struct {
 	User      models.User `json:"user"`
@@ -32,12 +30,12 @@ func init() {
 	c := env.NewConfiguration()
 	signBytes, err := ioutil.ReadFile(c.App.RSAPrivateKey)
 	if err != nil {
-		logger.Error.Printf("leyendo el archivo privado de firma: %s", err)
+		logger.Error.Printf("", "leyendo el archivo privado de firma: %s", err)
 	}
 
 	signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	if err != nil {
-		logger.Error.Printf("realizando el parse en authentication RSA private: %s", err)
+		logger.Error.Printf("", "realizando el parse en authentication RSA private: %s", err)
 	}
 }
 
@@ -55,7 +53,7 @@ func GenerateJWT(u models.User) (string, int, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodRS256, c)
 	token, err := t.SignedString(signKey)
 	if err != nil {
-		logger.Error.Printf("firmando el token: %v", err)
+		logger.Error.Printf("", "firmando el token: %v", err)
 		return "", 70, err
 	}
 	// TODO encript Token

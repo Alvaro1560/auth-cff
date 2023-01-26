@@ -33,7 +33,7 @@ func (h *Handler) LoginV3(c *fiber.Ctx) error {
 	m := LoginRequest{}
 	err := c.BodyParser(&m)
 	if err != nil {
-		logger.Error.Printf("no se pudo leer el Modelo User en login: %v", err)
+		logger.Error.Printf(h.TxID, "no se pudo leer el Modelo User en login: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -41,7 +41,7 @@ func (h *Handler) LoginV3(c *fiber.Ctx) error {
 	serviceLogin := login.NewLoginService(h.DB, h.TxID)
 	token, cod, err := serviceLogin.Login(m.ID, m.Username, m.Password, m.ClientID, m.HostName, m.RealIP)
 	if err != nil {
-		logger.Warning.Printf("no se pudo leer el Modelo User en login: %v", err)
+		logger.Warning.Printf(h.TxID, "no se pudo leer el Modelo User en login: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -57,7 +57,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	m := LoginRequest{}
 	err := c.BodyParser(&m)
 	if err != nil {
-		logger.Error.Printf("no se pudo leer el Modelo User en login: %v", err)
+		logger.Error.Printf(h.TxID, "no se pudo leer el Modelo User en login: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -65,7 +65,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	serviceLogin := login.NewLoginService(h.DB, h.TxID)
 	token, cod, err := serviceLogin.Login(m.ID, m.Username, m.Password, m.ClientID, m.HostName, m.RealIP)
 	if err != nil {
-		logger.Warning.Printf("no se pudo leer el Modelo User en login: %v", err)
+		logger.Warning.Printf(h.TxID, "no se pudo leer el Modelo User en login: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -87,7 +87,7 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 	m := ForgotPasswordRequest{}
 	err := c.BodyParser(&m)
 	if err != nil {
-		logger.Error.Printf("no se pudo leer el forgot password: %v", err)
+		logger.Error.Printf(h.TxID, "no se pudo leer el forgot password: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -97,21 +97,21 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 
 	user, cod, err := serviceUsers.GetUserByUsername(m.Username)
 	if err != nil {
-		logger.Error.Printf("couldn't get user by username : %v", err)
+		logger.Error.Printf(h.TxID, "couldn't get user by username : %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 		res.Msg = err.Error()
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
 	if user == nil {
-		logger.Error.Printf("couldn't user with username %s", m.Username)
+		logger.Error.Printf(h.TxID, "couldn't user with username %s", m.Username)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 		res.Msg = err.Error()
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
 	if m.Email != user.EmailNotifications {
-		logger.Error.Printf("El correo de confirmación no es correcto", m.Email)
+		logger.Error.Printf(h.TxID, "El correo de confirmación no es correcto", m.Email)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		res.Msg = err.Error()
 		return c.Status(http.StatusAccepted).JSON(res)
@@ -119,7 +119,7 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 
 	token, cod, err := login.GenerateJWT(models.User(*user))
 	if err != nil {
-		logger.Error.Printf("no se pudo obtener modulos del usuario : ", err)
+		logger.Error.Printf(h.TxID, "no se pudo obtener modulos del usuario : ", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -133,7 +133,7 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 
 	bodyCode, err := genTemplate.GenerateTemplateMail(parameters, e.Template.Recovery)
 	if err != nil {
-		logger.Error.Printf("couldn't generate body in notification email")
+		logger.Error.Printf(h.TxID, "couldn't generate body in notification email")
 		return err
 	}
 
@@ -146,7 +146,7 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 
 	err = emailCode.SendMail()
 	if err != nil {
-		logger.Error.Println("error when execute send email: %v", err)
+		logger.Error.Println(h.TxID, "error when execute send email: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(45)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -162,7 +162,7 @@ func (h *Handler) ChangePassword(c *fiber.Ctx) error {
 	m := ChangePasswordRequest{}
 	err := c.BodyParser(&m)
 	if err != nil {
-		logger.Error.Printf("no se pudo leer el forgot password: %v", err)
+		logger.Error.Printf(h.TxID, "no se pudo leer el forgot password: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -172,7 +172,7 @@ func (h *Handler) ChangePassword(c *fiber.Ctx) error {
 
 	code, err := serviceUsers.ChangePassword(m.ID, m.Password, m.PasswordConfirm)
 	if err != nil {
-		logger.Error.Printf("no se actualizar la contraseña: %v", err)
+		logger.Error.Printf(h.TxID, "no se actualizar la contraseña: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -188,7 +188,7 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 	m := PasswordPolicyRequest{}
 	err := c.BodyParser(&m)
 	if err != nil {
-		logger.Error.Printf("no se pudo leer el Modelo Password para validar politicas: %v", err)
+		logger.Error.Printf(h.TxID, "no se pudo leer el Modelo Password para validar politicas: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		res.Data = false
 		return c.Status(http.StatusOK).JSON(res)
@@ -256,7 +256,7 @@ func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
 
 	err := c.BodyParser(&key)
 	if err != nil {
-		logger.Error.Printf("no se pudo leer el Modelo User en login: %v", err)
+		logger.Error.Printf(h.TxID, "no se pudo leer el Modelo User en login: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
@@ -279,7 +279,7 @@ func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
 	serviceLogin := login.NewLoginService(h.DB, h.TxID)
 	token, cod, err := serviceLogin.Login(m.ID, m.Username, m.Password, m.ClientID, m.HostName, m.RealIP)
 	if err != nil {
-		logger.Warning.Printf("no se pudo leer el Modelo User en login: %v", err)
+		logger.Warning.Printf(h.TxID, "no se pudo leer el Modelo User en login: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
