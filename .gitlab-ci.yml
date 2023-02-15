@@ -26,10 +26,10 @@ test:
   script:
     - echo "Testing CI/CD..........."
     - go test -v -coverprofile=coverage.out -covermode=atomic ./... # ejecuta las pruebas unitarias en todos los paquetes y subpaquetes del directorio actual y sus subdirectorios, generando un informe de cobertura en el archivo "coverage.out"
-    - go tool cover -func=coverage.out # Analiza los resultados de la cobertura funcional en el archivo "coverage.out" generado previamente con el comando go test -coverprofile, y muestra un resumen de la cobertura de las funciones en el código
+    - go tool cover -html=coverage.out # Analiza los resultados de la cobertura funcional en el archivo "coverage.out" generado previamente con el comando go test -coverprofile, y muestra un resumen de la cobertura de las funciones en el código
   artifacts:
     paths:
-      - coverprofile/
+      - coverage.out
   dependencies: # En las dependecias ponemos de que dependemos de build por que testearemos el ejecutable construido
     - install-dependencies
   only: #solo se debe ejecutar el trabajo actual en la rama main
