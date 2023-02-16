@@ -63,8 +63,7 @@ deploy:
     - build
   script:
     - echo "Deploying CI/CD.........."
-    # -  confif [ ! -fig.json ]; then echo "config.json file not found"; exit 1; fi
-    - sshpass -p $password scp build/ecatch-auth $user@$server:/home/odin/jla/dev/ecatch-core/ecatch/microservicios/ecatch-auth # Accedemos al servidor odin con la clave, usuario y ip del servidor definido en variables de CI/CD para poder copiar el ejecutable en la ruta definida
-      #- sshpass -p $password ssh $user@$server "systemctl restart myapp"
+    - sshpass -p $password scp build/ecatch-auth $user@$server:/home/odin/jla/dev/ecatch-cloud/ecatch/microservicios/ecatch-auth # Accedemos al servidor odin con la clave, usuario y ip del servidor definido en variables de CI/CD para poder copiar el ejecutable en la ruta definida
+    - sshpass -p $password ssh $user@$server "sudo systemctl restart cloud-dev-ecatch-auth.service"
   only:
     - develop
