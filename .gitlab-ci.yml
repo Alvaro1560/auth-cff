@@ -3,8 +3,8 @@ image: golang:latest #Usamos la imagen de docker golang:latest por que hace refe
 stages: #Aqui definimos los 3 stages esenciales en todo pipeline
   - install-dependencies
   - test
-  # - build
-  # - deploy
+  - build
+  - deploy
 
 #STAGE INSTALL-DEPENDENCIES
 install-dependencies:
