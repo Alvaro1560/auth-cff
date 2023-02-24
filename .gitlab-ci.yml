@@ -63,8 +63,8 @@ deploy:
     - build
   script:
     - echo "Deploying CI/CD.........."
-    - sshpass -p $password ssh $user@$server "sudo systemctl stop cloud-dev-ecatch-engine.service" #detenemos el servicio por que esta en uso
+    - sshpass -p $password ssh $user@$server "sudo systemctl stop cloud-dev-ecatch-auth.service" #detenemos el servicio por que esta en uso
     - sshpass -p $password scp build/ecatch-auth $user@$server:/home/odin/jla/dev/ecatch-cloud/ecatch/microservicios/ecatch-auth # Accedemos al servidor odin con la clave, usuario y ip del servidor definido en variables de CI/CD para poder copiar el ejecutable en la ruta definida
-    - sshpass -p $password ssh $user@$server "sudo systemctl restart cloud-dev-ecatch-engine.service" #una vez copiado el compilado reiniciamos el servicio
+    - sshpass -p $password ssh $user@$server "sudo systemctl restart cloud-dev-ecatch-auth.service" #una vez copiado el compilado reiniciamos el servicio
   only:
     - develop
