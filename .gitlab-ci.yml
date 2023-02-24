@@ -12,7 +12,7 @@ install-dependencies:
   script:
     - mkdir vendor
     - go mod vendor
-    - echo "Installing dependencies ............"
+    - echo "Installing dependencies ............."
     - go get -v -d ./...
   artifacts:
     paths:
