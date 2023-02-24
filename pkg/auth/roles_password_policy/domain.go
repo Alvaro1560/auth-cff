@@ -26,6 +26,8 @@ type RolesPasswordPolicy struct {
 	Timeout              int       `json:"timeout" db:"timeout" valid:"required"`
 	CreatedAt            time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at" db:"updated_at"`
+	IdUser               string    `json:"id_user" db:"id_user"`
+	IsDelete             bool      `json:"is_delete" db:"is_delete"`
 }
 
 func NewRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLength int, MinLength int, StorePassNotRepeated int, FailedAttempts int, TimeUnlock int, Alpha int, Digits int, Special int, UpperCase int, LowerCase int, Enable bool, InactivityTime int, Timeout int) *RolesPasswordPolicy {

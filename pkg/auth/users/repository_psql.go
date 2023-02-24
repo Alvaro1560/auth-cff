@@ -138,9 +138,9 @@ func (s *psql) GetUsersByIDs(ids []string) ([]*User, error) {
 	return ms, nil
 }
 
-//Bloquea el Usuario
+// Bloquea el Usuario
 func (s *psql) BlockUser(id string) error {
-	const sqlUpdateBlockUser = `UPDATE auth.users SET status = 16, block_date = Now(), is_block = 1, updated_at = Now() WHERE id = :id `
+	const sqlUpdateBlockUser = `UPDATE auth.users SET status = 16, block_date = Now(), is_block = true, updated_at = Now() WHERE id = :id `
 	m := User{ID: id}
 	rs, err := s.DB.NamedExec(sqlUpdateBlockUser, &m)
 	if err != nil {
@@ -153,9 +153,9 @@ func (s *psql) BlockUser(id string) error {
 	return nil
 }
 
-//Desbloquea el Usuario
+// Desbloquea el Usuario
 func (s *psql) UnblockUser(id string) error {
-	const sqlUpdateUnblockUser = `UPDATE auth.users SET status = 1, block_date = Now(), is_block = 0, updated_at = Now() WHERE id = :id `
+	const sqlUpdateUnblockUser = `UPDATE auth.users SET status = 1, block_date = Now(), is_block = false, updated_at = Now() WHERE id = :id `
 	m := User{ID: id}
 	rs, err := s.DB.NamedExec(sqlUpdateUnblockUser, &m)
 	if err != nil {
@@ -168,7 +168,7 @@ func (s *psql) UnblockUser(id string) error {
 	return nil
 }
 
-//Cierra Sesion del Usuario
+// Cierra Sesion del Usuario
 func (s *psql) LogoutUser(id string) error {
 	const sqlLogoutUser = `DELETE FROM auth.users_loggeds WHERE user_id = :id `
 	m := User{ID: id}
@@ -183,7 +183,7 @@ func (s *psql) LogoutUser(id string) error {
 	return nil
 }
 
-//Cambia la clave y guarda el historial de clave
+// Cambia la clave y guarda el historial de clave
 func (s *psql) ChangePassword(id string, password string) error {
 	tx, err := s.DB.Beginx()
 	if err != nil {
@@ -270,4 +270,19 @@ func (s *psql) GetByUsernameAndIdentificationNumber(username string, identificat
 		return &mdl, err
 	}
 	return &mdl, nil
+}
+
+// DeleteUserPasswordHistory elimina un registro de la BD
+func (s *psql) DeleteUserPasswordHistory(id string) error {
+	const sqlDelete = `DELETE FROM auth.users_password_history WHERE user_id = :id `
+	m := User{ID: id}
+	rs, err := s.DB.NamedExec(sqlDelete, &m)
+	if err != nil {
+		logger.Error.Printf(s.TxID, " - couldn't delete users_password_history: %v", err)
+		return err
+	}
+	if i, _ := rs.RowsAffected(); i == 0 {
+		return fmt.Errorf("ecatch:108")
+	}
+	return nil
 }

@@ -265,3 +265,19 @@ func (s Service) ValidatePasswordPolicy(password string, maxLength, minLength, a
 	return responseValidate, 29, nil
 
 }
+
+func (s Service) DeleteUserPasswordHistory(id string) (int, error) {
+	if !govalidator.IsUUID(id) {
+		logger.Error.Println(s.txID, " - don't meet validations:", fmt.Errorf("id isn't uuid"))
+		return 15, fmt.Errorf("id isn't uuid")
+	}
+
+	if err := s.repository.DeleteUserPasswordHistory(id); err != nil {
+		if err.Error() == "ecatch:108" {
+			return 108, nil
+		}
+		logger.Error.Println(s.txID, " - couldn't DeleteUserPasswordHistory row:", err)
+		return 20, err
+	}
+	return 28, nil
+}
