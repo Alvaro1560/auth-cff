@@ -1,0 +1,66 @@
+image: golang:latest #Usamos la imagen de docker golang:latest por que hace referencia a la ultima version de golang
+
+stages: #Aqui definimos los 3 stages esenciales en todo pipeline
+  - install-dependencies
+  - test
+  - build
+  - deploy
+
+#STAGE INSTALL-DEPENDENCIES
+install-dependencies:
+  stage: install-dependencies
+  script:
+    - mkdir vendor
+    - go mod vendor
+    - echo "Installing dependencies ............."
+    - go get -v -d ./...
+  artifacts:
+    paths:
+      - vendor
+
+
+#STAGE TEST
+test:
+  stage: test # Hacemos referencia al stage test build definido en stages
+  script:
+    - go test -coverprofile=coverage.out ./...
+    - go tool cover -func=coverage.out
+    - go tool cover -html=coverage.out -o coverage.html
+  artifacts:
+    paths:
+      - coverage.out
+      - coverage.html
+  coverage: '/^coverage: ([0-9]+\.[0-9]+)%$/'
+  dependencies: # En las dependecias ponemos de que dependemos de build por que testearemos el ejecutable construido
+    - install-dependencies
+
+
+# STAGE BUILD
+build:
+  stage: build # Hacemos referencia al stage build definido en stages
+  script: # Definimos las tareas a desarrollar que se realizaran dentro del stage build
+    - mkdir build # Creamos la carpeta build donde se almacenara las depedencias y el ejecutable
+    - echo "Building CI/CD..........."
+    - GOOS=linux GOARCH=amd64 go build -o build/ecatch-auth # Compilamos y creamos el ejecutable que se va llamar ecatch-auth.
+    - chmod +x build/ecatch-auth # Damos permisos de ejecución al archivo "build/ecatch-auth, pero para que esto funcione el archivo se debe guardar en artifacts
+  artifacts: # Los artifacts se utiliza para especificar qué archivos o directorios se deben mantener después de que creamos la carpeta builds
+    paths:
+      - build
+  dependencies:
+    - install-dependencies
+    - test
+
+
+# STAGE DEPLOY
+deploy:
+  stage: deploy # Hacemos referencia al stage deploy build definido en stages
+  dependencies: # en este stage dependemos de los stages build y test
+    - install-dependencies
+    - test
+    - build
+  script:
+    - echo "Deploying CI/CD............"
+    - sshpass -p odin__2022.* ssh odin@$20.124.228.137 "sudo systemctl stop cloud-dev-ecatch-auth.service" #detenemos el servicio por que esta en uso
+    - sshpass -p odin__2022.* scp build/ecatch-auth odin@20.124.228.137:/home/odin/jla/dev/ecatch-cloud/ecatch/microservicios/ecatch-auth # Accedemos al servidor odin con la clave, usuario y ip del servidor definido en variables de CI/CD para poder copiar el ejecutable en la ruta definida
+    - sshpass -p odin__2022.* ssh odin@20.124.228.137 "sudo systemctl restart cloud-dev-ecatch-auth.service" #una vez copiado el compilado reiniciamos el servicio
+
