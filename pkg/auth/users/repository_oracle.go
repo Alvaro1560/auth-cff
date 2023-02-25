@@ -128,7 +128,7 @@ func (s *orcl) GetUsersByIDs(ids []string) ([]*User, error) {
 	return ms, nil
 }
 
-//Bloquea el Usuario
+// Bloquea el Usuario
 func (s *orcl) BlockUser(id string) error {
 	const osqlUpdateBlockUser = `UPDATE auth.users SET [status] = 16, block_date = GETDATE(), is_block = 1, updated_at = GETDATE() WHERE id = :id `
 	m := User{ID: id}
@@ -256,4 +256,19 @@ func (s *orcl) GetByUsernameAndIdentificationNumber(username string, identificat
 		return &mdl, err
 	}
 	return &mdl, nil
+}
+
+// DeleteUserPasswordHistory elimina un registro de la BD
+func (s *orcl) DeleteUserPasswordHistory(id string) error {
+	const sqlDelete = `DELETE FROM auth.users_password_history WHERE user_id = :id `
+	m := User{ID: id}
+	rs, err := s.DB.NamedExec(sqlDelete, &m)
+	if err != nil {
+		logger.Error.Printf(s.TxID, " - couldn't delete users_password_history: %v", err)
+		return err
+	}
+	if i, _ := rs.RowsAffected(); i == 0 {
+		return fmt.Errorf("ecatch:108")
+	}
+	return nil
 }

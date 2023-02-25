@@ -27,7 +27,8 @@ func NewRolesPasswordPolicyPsqlRepository(db *sqlx.DB, user *models.User, txID s
 
 // Create registra en la BD
 func (s *psql) Create(m *RolesPasswordPolicy) error {
-	const sqlInsert = `INSERT INTO auth.roles_password_policy (id ,role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout,created_at, updated_at) VALUES (:id ,:role_id, :days_pass_valid, :max_length, :min_length, :store_pass_not_repeated, :failed_attempts, :time_unlock, :alpha, :digits, :special, :upper_case, :lower_case, :enable, :inactivity_time, :timeout,Now(), Now()) `
+	m.IdUser = s.user.ID
+	const sqlInsert = `INSERT INTO auth.roles_password_policy (id ,role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout,created_at, updated_at, id_user, is_delete) VALUES (:id ,:role_id, :days_pass_valid, :max_length, :min_length, :store_pass_not_repeated, :failed_attempts, :time_unlock, :alpha, :digits, :special, :upper_case, :lower_case, :enable, :inactivity_time, :timeout,Now(), Now(), :id_user, false) `
 	_, err := s.DB.NamedExec(sqlInsert, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't insert RolesPasswordPolicy: %v", err)

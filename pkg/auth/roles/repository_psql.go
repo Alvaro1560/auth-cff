@@ -28,7 +28,8 @@ func NewRolePsqlRepository(db *sqlx.DB, user *models.User, txID string) *psql {
 
 // Create registra en la BD
 func (s *psql) Create(m *Role) error {
-	const sqlInsert = `INSERT INTO auth.roles (id ,name, description, sessions_allowed,created_at, updated_at) VALUES (:id ,:name, :description, :sessions_allowed, Now(), Now()) `
+	m.UserID = s.user.ID
+	const sqlInsert = `INSERT INTO auth.roles (id ,name, description, sessions_allowed,created_at, updated_at, id_user, is_delete) VALUES (:id ,:name, :description, :sessions_allowed, Now(), Now(), :id_user, false) `
 	_, err := s.DB.NamedExec(sqlInsert, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't insert Role: %v", err)
@@ -145,7 +146,7 @@ func (s *psql) GetRolesByIDs(IDs []string) ([]*Role, error) {
 
 func (s *psql) GetByUserIDs(userIDs []string) ([]*Role, error) {
 	var ms []*Role
-	const sqlGetByID = `SELECT r.id, r.name, r.description, r.sessions_allowed, ur.user_id, r.created_at, r.updated_at  FROM auth.roles r JOIN auth.users_roles ur ON r.id = ur.role_id WHERE ur.user_id IN (%s) `
+	const sqlGetByID = `SELECT r.id, r.name, r.description, r.sessions_allowed, ur.id_user, r.created_at, r.updated_at  FROM auth.roles r JOIN auth.users_roles ur ON r.id = ur.role_id WHERE ur.id_user IN (%s) `
 	query := fmt.Sprintf(sqlGetByID, helper.SliceToString(userIDs))
 	err := s.DB.Select(&ms, query)
 	if err != nil {

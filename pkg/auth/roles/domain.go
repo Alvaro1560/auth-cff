@@ -13,7 +13,7 @@ type Role struct {
 	Description     string    `json:"description" db:"description" valid:"required"`
 	SessionsAllowed int       `json:"sessions_allowed" db:"sessions_allowed" valid:"required"`
 	ProcessID       string    `json:"process_id,omitempty" db:"process_id" valid:"-"`
-	UserID          string    `json:"user_id,omitempty" db:"user_id" valid:"-"`
+	UserID          string    `json:"id_user,omitempty" db:"id_user" valid:"-"`
 	CreatedAt       time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" db:"updated_at"`
 }
