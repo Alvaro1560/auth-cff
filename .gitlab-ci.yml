@@ -24,7 +24,7 @@ test:
   dependencies: # En las dependecias ponemos de que dependemos de build por que testearemos el ejecutable construido
     - install-dependencies
   script:
-    - go test -coverprofile=coverage.out ./...
+    - go test --ignore test -coverprofile=coverage.out ./...
     - go tool cover -func=coverage.out
     - go tool cover -html=coverage.out -o coverage.html
   artifacts:
