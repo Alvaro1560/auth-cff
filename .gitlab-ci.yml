@@ -10,7 +10,7 @@ install-dependencies:
   stage: install-dependencies
   script:
     - go mod vendor
-    - echo "Installing dependencies ............."
+    - echo "Installing dependencies .............."
     - go get -v -d ./...
   artifacts:
     paths:
