@@ -16,7 +16,7 @@ install-dependencies:
     paths:
       - ./vendor
   only: #solo se debe ejecutar el trabajo actual en la rama main
-    - devOps/ci-cd
+    - develop
 
 #STAGE TEST
 test:
@@ -33,7 +33,7 @@ test:
       - coverage.html
   coverage: '/^coverage: ([0-9]+\.[0-9]+)%$/'
   only: #solo se debe ejecutar el trabajo actual en la rama main
-    - devOps/ci-cd
+    - devélop
 
 # STAGE BUILD
 build:
@@ -50,7 +50,7 @@ build:
     - install-dependencies
     - test
   only: # solo se debe ejecutar el trabajo actual en la rama main
-    - devOps/ci-cd
+    - develop
 
 #STAGE DEPLOY
 deploy:
@@ -65,4 +65,4 @@ deploy:
     - sshpass -p $password scp build/ecatch-auth $user@$server:/home/odin/jla/dev/ecatch-cloud/ecatch/microservicios/ecatch-auth # Accedemos al servidor odin con la clave, usuario y ip del servidor definido en variables de CI/CD para poder copiar el ejecutable en la ruta definida
     - sshpass -p $password ssh $user@$server "sudo systemctl restart cloud-dev-ecatch-auth.service" #una vez copiado el compilado reiniciamos el servicio
   only:
-    - devOps/ci-cd
+    - develop
