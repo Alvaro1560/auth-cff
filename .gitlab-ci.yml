@@ -33,7 +33,7 @@ test:
       - coverage.html
   coverage: '/^coverage: ([0-9]+\.[0-9]+)%$/'
   only: #solo se debe ejecutar el trabajo actual en la rama main
-    - devélop
+    - develop
 
 # STAGE BUILD
 build:
