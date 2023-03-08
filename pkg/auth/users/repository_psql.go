@@ -286,3 +286,17 @@ func (s *psql) DeleteUserPasswordHistory(id string) error {
 	}
 	return nil
 }
+
+func (s *psql) GetByIdentificationNumber(identificationNumber string) (*User, error) {
+	const sqlGetByUsername = `SELECT  id , username, name, lastname, password, email_notifications, identification_number, identification_type, status, failed_attempts, last_change_password, block_date, disabled_date, change_password, is_block, is_disabled, last_login, created_at, updated_at FROM auth.users  WHERE identification_number = '$1'`
+	mdl := User{}
+	err := s.DB.Get(&mdl, sqlGetByUsername, identificationNumber)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		logger.Error.Printf(s.TxID, " - couldn't execute GetByUsername User: %v", err)
+		return &mdl, err
+	}
+	return &mdl, nil
+}

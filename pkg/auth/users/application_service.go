@@ -281,3 +281,12 @@ func (s Service) DeleteUserPasswordHistory(id string) (int, error) {
 	}
 	return 28, nil
 }
+
+func (s Service) GetIdentificationNumber(identificationNumber string) (*User, int, error) {
+	m, err := s.repository.GetByIdentificationNumber(identificationNumber)
+	if err != nil {
+		logger.Error.Println(s.txID, " - couldn't GetByIdentificationNumber row:", err)
+		return nil, 22, err
+	}
+	return m, 29, nil
+}

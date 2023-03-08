@@ -8,3 +8,7 @@ type VerificationDataRequest struct {
 	Identification string `json:"identification"`
 	Code           string `json:"code"`
 }
+
+type ReqGenerateOtp struct {
+	IdentificationNumber string `json:"identification_number"`
+}
