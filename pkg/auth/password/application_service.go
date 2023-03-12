@@ -1,8 +1,13 @@
 package password
 
 import (
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/logger"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/models"
 )
+
+type PortsServerPassword interface {
+	GetLastPasswordByUserId(userId string) (*Password, int, error)
+}
 
 type Service struct {
 	repository ServicesPasswordRepository
@@ -10,8 +15,18 @@ type Service struct {
 	txID       string
 }
 
-func NewPasswordService(repository ServicesPasswordRepository, user *models.User, TxID string) Service {
+func NewPasswordService(repository ServicesPasswordRepository, user *models.User, TxID string) PortsServerPassword {
 	return Service{repository: repository, user: user, txID: TxID}
+}
+
+func (s Service) GetLastPasswordByUserId(userId string) (*Password, int, error) {
+	m, err := s.repository.GetByUserID(userId)
+	if err != nil {
+		logger.Error.Println("No se pudo obtner el ultimo historial de contraseña, err: %v", err)
+		return nil, 22, err
+	}
+
+	return m, 29, nil
 }
 
 /*

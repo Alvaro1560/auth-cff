@@ -6,9 +6,12 @@ import (
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/env"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/models"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/sendmail"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles_password_policy"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
 	"net/http"
+	"time"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/response"
 
@@ -238,6 +241,168 @@ func (h *Handler) PasswordPolicy(c *fiber.Ctx) error {
 		return c.Status(http.StatusOK).JSON(res)
 	}
 	res.Data = true
+	res.Code, res.Type, res.Msg = msg.GetByCode(29)
+	res.Error = false
+	return c.Status(http.StatusOK).JSON(res)
+}
+
+func (h *Handler) PasswordPolicyV2(c *fiber.Ctx) error {
+	res := response.Model{Error: true}
+	var msg msgs.Model
+	m := PasswordPolicyRequestV2{}
+	err := c.BodyParser(&m)
+	if err != nil {
+		logger.Error.Printf(h.TxID, "no se pudo leer el Modelo Password para validar politicas: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		res.Data = false
+		return c.Status(http.StatusOK).JSON(res)
+	}
+	repositoryRPasswordPolicy := roles_password_policy.FactoryStorage(h.DB, nil, h.TxID)
+	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
+	srvRoles := roles.FactoryStorage(h.DB, nil, h.TxID)
+	serviceRoles := roles.NewRoleService(srvRoles, nil, h.TxID)
+
+	var rs []string
+
+	rolesUser, code, err := serviceRoles.GetRolesByUserID(m.UserID)
+	if err != nil {
+		logger.Error.Println("couldn't get roles assigned to user, erro: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if rolesUser != nil && len(rolesUser) > 0 {
+		for _, role := range rolesUser {
+			rs = append(rs, role.ID)
+		}
+	} else {
+		rs = append(rs, "50602690-B91F-4567-9A8D-A812B37A87BF")
+	}
+
+	pp, err := servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
+	if err != nil {
+		logger.Error.Println("couldn't get role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	if pp == nil {
+		logger.Error.Println("don't exists role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	var result bool
+	passByte := ciphers.Decrypt(m.Password)
+	if passByte == "" {
+		logger.Error.Println("couldn't get password to validate")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	repositoryUsers := users.FactoryStorage(h.DB, nil, h.TxID)
+	serviceUsers := users.NewUserService(repositoryUsers, nil, h.TxID)
+	m.Password = passByte
+	for _, policy := range pp {
+		valid, cod, err := serviceUsers.ValidatePasswordPolicy(m.Password, policy.MaxLength, policy.MinLength, policy.Alpha,
+			policy.Digits, policy.Special, policy.UpperCase, policy.LowerCase, policy.Enable)
+		if err != nil {
+			logger.Error.Println("couldn't get password to validate")
+			res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+			return c.Status(http.StatusAccepted).JSON(res)
+		}
+		result = valid
+	}
+	if !result {
+		logger.Error.Println("Password no cumple politicas del rol")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	if len(m.Password) < 4 {
+		res.Code, res.Type, res.Msg = msg.GetByCode(77)
+		res.Data = false
+		return c.Status(http.StatusOK).JSON(res)
+	}
+	res.Data = true
+	res.Code, res.Type, res.Msg = msg.GetByCode(29)
+	res.Error = false
+	return c.Status(http.StatusOK).JSON(res)
+}
+
+func (h *Handler) PasswordLife(c *fiber.Ctx) error {
+	res := response.Model{Error: true}
+	var msg msgs.Model
+	m := PasswordLife{}
+	err := c.BodyParser(&m)
+	if err != nil {
+		logger.Error.Printf(h.TxID, "no se pudo leer el Modelo Password para validar politicas: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		res.Data = false
+		return c.Status(http.StatusOK).JSON(res)
+	}
+	repositoryRPasswordPolicy := roles_password_policy.FactoryStorage(h.DB, nil, h.TxID)
+	servicesRoles := roles_password_policy.NewRolesPasswordPolicyService(repositoryRPasswordPolicy, nil, h.TxID)
+	srvRoles := roles.FactoryStorage(h.DB, nil, h.TxID)
+	serviceRoles := roles.NewRoleService(srvRoles, nil, h.TxID)
+
+	var rs []string
+
+	rolesUser, code, err := serviceRoles.GetRolesByUserID(m.UserID)
+	if err != nil {
+		logger.Error.Println("couldn't get roles assigned to user, erro: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if rolesUser != nil && len(rolesUser) > 0 {
+		for _, role := range rolesUser {
+			rs = append(rs, role.ID)
+		}
+	} else {
+		rs = append(rs, "50602690-B91F-4567-9A8D-A812B37A87BF")
+	}
+
+	pp, err := servicesRoles.GetAllRolesPasswordPolicyByRolesIDs(rs)
+	if err != nil {
+		logger.Error.Println("couldn't get role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if pp == nil || len(pp) <= 0 {
+		logger.Error.Println("don't exists role to validate passwordPolicy")
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	life := pp[0].DaysPassValid
+
+	for _, policy := range pp {
+		if life > policy.DaysPassValid {
+			life = policy.DaysPassValid
+		}
+	}
+
+	srvAuth := auth.NewServerAuth(h.DB, nil, h.TxID)
+	lastHistoryPassword, code, err := srvAuth.SrvPassword.GetLastPasswordByUserId(m.UserID)
+	if err != nil {
+		logger.Error.Println("couldn't get last History password, error: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if lastHistoryPassword == nil {
+		logger.Error.Println("couldn't get last History password")
+		res.Code, res.Type, res.Msg = msg.GetByCode(22)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	currentDate := time.Now()
+	dueDate := lastHistoryPassword.CreatedAt.AddDate(0, 0, life)
+
+	if dueDate.Sub(currentDate).Hours() <= 0 {
+		res.Code, res.Type, res.Msg = 43, "success", "La contraseña ha expirado o esta pronto a expirar, se recomienda cambiarla"
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)

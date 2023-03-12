@@ -15,7 +15,11 @@ func AuthenticationRouter(app *fiber.App, db *sqlx.DB, tx string) {
 	v1.Post("/forgot-password", ln.ForgotPassword)
 	v1.Post("/change-password", middleware.JWTProtected(), ln.ChangePassword)
 	v1.Post("/password-policy", ln.PasswordPolicy)
+	v1.Post("/password-life", ln.PasswordLife)
 	v1.Post("/autologin", ln.LoginGeneric)
+
+	v2 := api.Group("/v2/auth")
+	v2.Post("/password-policy", ln.PasswordPolicyV2)
 
 	v3 := api.Group("/v3/auth")
 	v3.Post("", ln.LoginV3)

@@ -29,6 +29,15 @@ type PasswordPolicyRequest struct {
 	Password string `json:"password"`
 }
 
+type PasswordPolicyRequestV2 struct {
+	Password string `json:"password"`
+	UserID   string `json:"user_id"`
+}
+
+type PasswordLife struct {
+	UserID string `json:"user_id"`
+}
+
 type Autologin struct {
 	Keyword string `json:"keyword"`
 }

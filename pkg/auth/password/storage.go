@@ -14,6 +14,7 @@ const (
 )
 
 type ServicesPasswordRepository interface {
+	GetByUserID(userId string) (*Password, error)
 }
 
 func FactoryStorage(db *sqlx.DB, user *models.User, txID string) ServicesPasswordRepository {
@@ -21,11 +22,11 @@ func FactoryStorage(db *sqlx.DB, user *models.User, txID string) ServicesPasswor
 	engine := db.DriverName()
 	switch engine {
 	case SqlServer:
-		fallthrough
+		return NewRolesPasswordSqlServerRepository(db, user, txID)
 	case Postgresql:
-		fallthrough
+		return NewRolesPasswordPsqlRepository(db, user, txID)
 	case Oracle:
-		fallthrough
+		return NewRolesPasswordOrclRepository(db, user, txID)
 	default:
 		logger.Error.Println("el motor de base de datos no está implementado.", engine)
 	}
