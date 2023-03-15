@@ -29,6 +29,7 @@ type ServicesUserRepository interface {
 	GetByUsernameAndIdentificationNumber(username string, identificationNumber string) (*User, error)
 	DeleteUserPasswordHistory(id string) error
 	GetByIdentificationNumber(identificationNumber string) (*User, error)
+	UpdateFailedAttempts(m *User) error
 }
 
 func FactoryStorage(db *sqlx.DB, user *models.User, txID string) ServicesUserRepository {

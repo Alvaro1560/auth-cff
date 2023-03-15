@@ -299,3 +299,16 @@ func (s *sqlserver) GetByIdentificationNumber(identificationNumber string) (*Use
 	}
 	return &mdl, nil
 }
+
+func (s *sqlserver) UpdateFailedAttempts(m *User) error {
+	const sqlUpdateFailedAttempts = `UPDATE auth.users SET failed_attempts = :failed_attempts, updated_at = GETDATE() WHERE id = :id `
+	rs, err := s.DB.NamedExec(sqlUpdateFailedAttempts, &m)
+	if err != nil {
+		logger.Error.Printf(s.TxID, " - couldn't update User: %v", err)
+		return err
+	}
+	if i, _ := rs.RowsAffected(); i == 0 {
+		return fmt.Errorf("ecatch:108")
+	}
+	return nil
+}

@@ -6,7 +6,7 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-// Model estructura de RolesPasswordPolicy
+// RolesPasswordPolicy estructura de RolesPasswordPolicy
 type RolesPasswordPolicy struct {
 	ID                   string    `json:"id" db:"id" valid:"required,uuid"`
 	RoleId               string    `json:"role_id" db:"role_id" valid:"required"`

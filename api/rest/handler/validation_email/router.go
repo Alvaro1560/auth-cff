@@ -15,5 +15,6 @@ func ValidationEmailRouter(app *fiber.App, db *sqlx.DB, tx string) {
 	validation.Post("/generate", ln.sendCode)
 	validation.Post("/generate-otp", ln.GenerateOtp)
 	validation.Post("/validate", ln.verifyCode)
+	validation.Post("/validate-otp", ln.verifyOtp)
 
 }

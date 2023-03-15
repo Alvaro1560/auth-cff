@@ -154,14 +154,14 @@ func (h *handlerValidationEmail) GenerateOtp(c *fiber.Ctx) error {
 	emailCode := strconv.Itoa(rand.Intn(max-min+1) + min)
 	verifiedCode := password.Encrypt(emailCode)
 
-	user, code, err := srvUser.SrvUsers.GetIdentificationNumber(m.IdentificationNumber)
+	user, code, err := srvUser.SrvUsers.GetUserByIdentificationNumber(m.IdentificationNumber)
 	if err != nil {
 		logger.Error.Printf(h.TxID, "couldn't get user by identity number: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
-	codVerify, code, err := srvUser.SrvVerificationEmail.CreateVerificationEmail(user.EmailNotifications, verifiedCode, user.IdentificationNumber, nil)
+	codVerify, code, err := srvUser.SrvVerificationEmail.CreateVerificationEmail(m.Email, verifiedCode, user.IdentificationNumber, nil)
 	if err != nil {
 		logger.Error.Printf(h.TxID, "couldn't create verify code: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
@@ -176,7 +176,7 @@ func (h *handlerValidationEmail) GenerateOtp(c *fiber.Ctx) error {
 
 	parameters["@access-code"] = jwt
 	parameters["@TEMPLATE-PATH"] = e.Template.EmailCode
-	tos := []string{user.EmailNotifications}
+	tos := []string{m.Email}
 
 	email := sendmail.Model{
 		From:        e.Template.EmailSender,
@@ -201,6 +201,57 @@ func (h *handlerValidationEmail) GenerateOtp(c *fiber.Ctx) error {
 	}
 
 	res.Data = codVerify.ID
+	res.Code, res.Type, res.Msg = msg.GetByCode(29)
+	res.Error = false
+	return c.Status(http.StatusOK).JSON(res)
+}
+
+func (h *handlerValidationEmail) verifyOtp(c *fiber.Ctx) error {
+	res := response.Model{Error: true}
+	var msg msgs.Model
+
+	m := VerificationDataRequest{}
+
+	err := c.BodyParser(&m)
+	if err != nil {
+		logger.Error.Printf(h.TxID, "couldn't bind model verification: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(1)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	srvUser := auth.NewServerAuth(h.DB, nil, h.TxID)
+
+	dataVerify, code, err := srvUser.SrvVerificationEmail.GetVerificationEmailByID(m.Id)
+	if err != nil {
+		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if dataVerify == nil {
+		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if !password.Compare(dataVerify.Email, dataVerify.VerificationCode, ciphers.Decrypt(m.Code)) {
+		logger.Error.Printf(h.TxID, "the verification code is not correct: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(10)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	if dataVerify.VerificationDate != nil {
+		res.Code, res.Type, res.Msg = msg.GetByCode(5)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+	dateTime := time.Now()
+	_, code, err = srvUser.SrvVerificationEmail.UpdateVerificationEmail(dataVerify.ID, dataVerify.Email, "", dataVerify.Identification, &dateTime)
+	if err != nil {
+		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
+		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		return c.Status(http.StatusAccepted).JSON(res)
+	}
+
+	res.Data = "successful email validation"
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)

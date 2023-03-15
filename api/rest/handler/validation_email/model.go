@@ -11,4 +11,5 @@ type VerificationDataRequest struct {
 
 type ReqGenerateOtp struct {
 	IdentificationNumber string `json:"identification_number"`
+	Email                string `json:"email"`
 }
