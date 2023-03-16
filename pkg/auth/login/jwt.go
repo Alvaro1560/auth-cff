@@ -71,8 +71,8 @@ func GenerateJWTOtp(otp string, id int64) (string, int, error) {
 		Otp: otp,
 		Id:  id,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 5).Unix(),
-			Issuer:    "Ecatch-BPM",
+			ExpiresAt: time.Now().Add(time.Minute * 10).Unix(),
+			Issuer:    "BTiger-system",
 		},
 	}
 
