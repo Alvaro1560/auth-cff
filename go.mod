@@ -9,10 +9,10 @@ require (
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.10.0
-	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
+	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.17.0
-	github.com/gofiber/jwt/v2 v2.2.7 // indirect
+	github.com/gofiber/jwt/v2 v2.2.7
 	github.com/google/uuid v1.1.2
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.9.0

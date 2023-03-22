@@ -127,10 +127,16 @@ func (s *Service) Login(id, Username, Password string, ClientID int, HostName, R
 		return token, cod, nil
 	}
 	politics, cod, err := s.validatePasswordPolicies(usr.Roles)
-	if err != nil || politics == nil {
+	if err != nil {
 		transact.RegisterLogUsr("user-has-not-password-politics", HostName, RealIP, RealIP, usr.ID)
 		logger.Warning.Printf(s.TxID, " - No se pudo obtener las politicas de las contraseñas: %s, IP: %s", m.ID, m.RealIP)
-		return token, cod, nil
+		return token, cod, err
+	}
+
+	if politics == nil {
+		transact.RegisterLogUsr("user-has-not-password-politics", HostName, RealIP, RealIP, usr.ID)
+		logger.Warning.Printf(s.TxID, " - El usuario no tiene politicas de seguridad itegradas, contactese con su administrador: %s, IP: %s", m.ID, m.RealIP)
+		return token, cod, fmt.Errorf("El usuario no tiene politicas de seguridad itegradas, contactese con su administrador")
 	}
 
 	if !password.Compare(usr.ID, usr.Password, m.Password) {
