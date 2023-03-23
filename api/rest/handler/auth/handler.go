@@ -49,7 +49,7 @@ func (h *Handler) LoginV3(c *fiber.Ctx) error {
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	res.Data = token
-	if res.Code == 1001 {
+	if cod == 1001 {
 		res.Code, res.Type, res.Msg = 1001, "success", "Procesado correctamente"
 	} else {
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
@@ -459,7 +459,7 @@ func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	res.Data = token
-	if res.Code == 1001 {
+	if cod == 1001 {
 		res.Code, res.Type, res.Msg = 1001, "success", "Procesado correctamente"
 	} else {
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
