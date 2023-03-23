@@ -13,6 +13,7 @@ import (
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/sendmail"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/login"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/verification_email"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -97,7 +98,7 @@ func (h *handlerValidationEmail) verifyCode(c *fiber.Ctx) error {
 	}
 	srvUser := auth.NewServerAuth(h.DB, nil, h.TxID)
 
-	dataVerify, code, err := srvUser.SrvVerificationEmail.GetVerificationEmailByID(m.Id)
+	dataVerify, code, err := srvUser.SrvVerificationEmail.GetVerificationEmailByID(*m.Id)
 	if err != nil {
 		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(code)
@@ -220,16 +221,28 @@ func (h *handlerValidationEmail) verifyOtp(c *fiber.Ctx) error {
 	}
 	srvUser := auth.NewServerAuth(h.DB, nil, h.TxID)
 
-	dataVerify, code, err := srvUser.SrvVerificationEmail.GetVerificationEmailByID(m.Id)
-	if err != nil {
-		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
-		res.Code, res.Type, res.Msg = msg.GetByCode(code)
-		return c.Status(http.StatusAccepted).JSON(res)
+	dataVerify := &verification_email.VerificationEmail{}
+	code := 0
+
+	if m.Id == nil {
+		dataVerify, code, err = srvUser.SrvVerificationEmail.GetVerificationEmailByIdentification(m.Identification)
+		if err != nil {
+			logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
+			res.Code, res.Type, res.Msg = msg.GetByCode(code)
+			return c.Status(http.StatusAccepted).JSON(res)
+		}
+	} else {
+		dataVerify, code, err = srvUser.SrvVerificationEmail.GetVerificationEmailByID(*m.Id)
+		if err != nil {
+			logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
+			res.Code, res.Type, res.Msg = msg.GetByCode(code)
+			return c.Status(http.StatusAccepted).JSON(res)
+		}
 	}
 
 	if dataVerify == nil {
 		logger.Error.Printf(h.TxID, "couldn't get email verification: %v", err)
-		res.Code, res.Type, res.Msg = msg.GetByCode(code)
+		res.Code, res.Type, res.Msg = msg.GetByCode(22)
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
@@ -240,7 +253,7 @@ func (h *handlerValidationEmail) verifyOtp(c *fiber.Ctx) error {
 	}
 
 	if dataVerify.VerificationDate != nil {
-		res.Code, res.Type, res.Msg = msg.GetByCode(5)
+		res.Code, res.Type, res.Msg = 5, "error", "El código OTP ya fue utilizado"
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	dateTime := time.Now()

@@ -13,6 +13,8 @@ type PortsServerVerificationEmail interface {
 	DeleteVerificationEmail(id int64) (int, error)
 	GetVerificationEmailByID(id int64) (*VerificationEmail, int, error)
 	GetAllVerificationEmail() ([]*VerificationEmail, error)
+	GetVerificationEmailByEmail(email string) (*VerificationEmail, int, error)
+	GetVerificationEmailByIdentification(identification string) (*VerificationEmail, int, error)
 }
 
 type service struct {
@@ -90,4 +92,24 @@ func (s *service) GetVerificationEmailByID(id int64) (*VerificationEmail, int, e
 
 func (s *service) GetAllVerificationEmail() ([]*VerificationEmail, error) {
 	return s.repository.getAll()
+}
+
+func (s *service) GetVerificationEmailByEmail(email string) (*VerificationEmail, int, error) {
+
+	m, err := s.repository.getByEmail(email)
+	if err != nil {
+		logger.Error.Println(s.txID, " - couldn`t getByEmail row:", err)
+		return nil, 22, err
+	}
+	return m, 29, nil
+}
+
+func (s *service) GetVerificationEmailByIdentification(identification string) (*VerificationEmail, int, error) {
+
+	m, err := s.repository.getByIdentification(identification)
+	if err != nil {
+		logger.Error.Println(s.txID, " - couldn`t getByIdentification row:", err)
+		return nil, 22, err
+	}
+	return m, 29, nil
 }

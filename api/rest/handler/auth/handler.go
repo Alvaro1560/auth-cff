@@ -82,7 +82,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		RefreshToken: token,
 	}
 	res.Data = mr
-	if res.Code == 1001 {
+	if cod == 1001 {
 		res.Code, res.Type, res.Msg = 1001, "success", "Procesado correctamente"
 	} else {
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
@@ -408,6 +408,7 @@ func (h *Handler) PasswordLife(c *fiber.Ctx) error {
 	dueDate := lastHistoryPassword.CreatedAt.AddDate(0, 0, life)
 
 	if dueDate.Sub(currentDate).Hours() <= 0 {
+		res.Error = false
 		res.Code, res.Type, res.Msg = 43, "success", "La contraseña ha expirado o esta pronto a expirar, se recomienda cambiarla"
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
