@@ -49,7 +49,12 @@ func (h *Handler) LoginV3(c *fiber.Ctx) error {
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	res.Data = token
-	res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+	if res.Code == 1001 {
+		res.Code, res.Type, res.Msg = 1001, "success", "Procesado correctamente"
+	} else {
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+	}
+
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
 }
@@ -77,7 +82,11 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		RefreshToken: token,
 	}
 	res.Data = mr
-	res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+	if res.Code == 1001 {
+		res.Code, res.Type, res.Msg = 1001, "success", "Procesado correctamente"
+	} else {
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+	}
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
 }
@@ -449,7 +458,11 @@ func (h *Handler) LoginGeneric(c *fiber.Ctx) error {
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 	res.Data = token
-	res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+	if res.Code == 1001 {
+		res.Code, res.Type, res.Msg = 1001, "success", "Procesado correctamente"
+	} else {
+		res.Code, res.Type, res.Msg = msg.GetByCode(cod)
+	}
 	res.Error = false
 	return c.Status(http.StatusOK).JSON(res)
 }

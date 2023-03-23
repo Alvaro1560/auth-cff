@@ -28,9 +28,10 @@ type RolesPasswordPolicy struct {
 	UpdatedAt            time.Time `json:"updated_at" db:"updated_at"`
 	IdUser               string    `json:"id_user" db:"id_user"`
 	IsDelete             bool      `json:"is_delete" db:"is_delete"`
+	Required2fa          bool      `json:"required_2fa" db:"required_2fa"`
 }
 
-func NewRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLength int, MinLength int, StorePassNotRepeated int, FailedAttempts int, TimeUnlock int, Alpha int, Digits int, Special int, UpperCase int, LowerCase int, Enable bool, InactivityTime int, Timeout int) *RolesPasswordPolicy {
+func NewRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLength int, MinLength int, StorePassNotRepeated int, FailedAttempts int, TimeUnlock int, Alpha int, Digits int, Special int, UpperCase int, LowerCase int, Enable bool, InactivityTime int, Timeout int, required2fa bool) *RolesPasswordPolicy {
 	return &RolesPasswordPolicy{
 		ID:                   id,
 		RoleId:               RoleId,
@@ -48,6 +49,7 @@ func NewRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLeng
 		Enable:               Enable,
 		InactivityTime:       InactivityTime,
 		Timeout:              Timeout,
+		Required2fa:          required2fa,
 	}
 }
 
