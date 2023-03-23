@@ -224,6 +224,7 @@ func (s *Service) Login(id, Username, Password string, ClientID int, HostName, R
 	for _, politic := range politics {
 		if politic.Required2fa {
 			code = 1001
+			break
 		}
 	}
 
