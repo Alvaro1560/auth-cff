@@ -136,7 +136,7 @@ func (s *Service) Login(id, Username, Password string, ClientID int, HostName, R
 	if politics == nil {
 		transact.RegisterLogUsr("user-has-not-password-politics", HostName, RealIP, RealIP, usr.ID)
 		logger.Warning.Printf(s.TxID, " - El usuario no tiene politicas de seguridad itegradas, contactese con su administrador: %s, IP: %s", m.ID, m.RealIP)
-		return token, cod, fmt.Errorf("el usuario no tiene politicas de seguridad itegradas, contactese con su administrador")
+		return token, 22, fmt.Errorf("el usuario no tiene politicas de seguridad itegradas, contactese con su administrador")
 	}
 
 	if !password.Compare(usr.ID, usr.Password, m.Password) {

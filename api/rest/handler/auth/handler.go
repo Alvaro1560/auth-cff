@@ -5,6 +5,7 @@ import (
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/env"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/models"
+	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/response"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/sendmail"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/roles"
@@ -12,8 +13,6 @@ import (
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/users"
 	"net/http"
 	"time"
-
-	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/response"
 
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/pkg/auth/login"
 
@@ -398,19 +397,15 @@ func (h *Handler) PasswordLife(c *fiber.Ctx) error {
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
-	if lastHistoryPassword == nil {
-		logger.Error.Println("couldn't get last History password")
-		res.Code, res.Type, res.Msg = msg.GetByCode(22)
-		return c.Status(http.StatusAccepted).JSON(res)
-	}
+	if lastHistoryPassword != nil {
+		currentDate := time.Now()
+		dueDate := lastHistoryPassword.CreatedAt.AddDate(0, 0, life)
 
-	currentDate := time.Now()
-	dueDate := lastHistoryPassword.CreatedAt.AddDate(0, 0, life)
-
-	if dueDate.Sub(currentDate).Hours() <= 0 {
-		res.Error = false
-		res.Code, res.Type, res.Msg = 43, "success", "La contraseña ha expirado o esta pronto a expirar, se recomienda cambiarla"
-		return c.Status(http.StatusAccepted).JSON(res)
+		if dueDate.Sub(currentDate).Hours() <= 0 {
+			res.Error = false
+			res.Code, res.Type, res.Msg = 43, "success", "La contraseña ha expirado o esta pronto a expirar, se recomienda cambiarla"
+			return c.Status(http.StatusAccepted).JSON(res)
+		}
 	}
 
 	res.Code, res.Type, res.Msg = msg.GetByCode(29)
