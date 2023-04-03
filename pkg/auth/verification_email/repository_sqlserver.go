@@ -108,3 +108,31 @@ func (s *sqlserver) getAll() ([]*VerificationEmail, error) {
 	}
 	return ms, nil
 }
+
+// GetByID consulta un registro por su ID
+func (s *sqlserver) getByEmail(email string) (*VerificationEmail, error) {
+	const psqlGetByEmail = `SELECT top(1)  id , email, verification_code, identification, verification_date, created_at, updated_at FROM auth.verification_email WITH (NOLOCK) WHERE email = @email  order by created_at desc`
+	mdl := VerificationEmail{}
+	err := s.DB.Get(&mdl, psqlGetByEmail, sql.Named("email", email))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return &mdl, err
+	}
+	return &mdl, nil
+}
+
+// GetByID consulta un registro por su ID
+func (s *sqlserver) getByIdentification(identification string) (*VerificationEmail, error) {
+	const psqlGetByIdentification = `SELECT top(1) id , email, verification_code, identification, verification_date, created_at, updated_at FROM auth.verification_email WHERE identification = @identification  order by created_at`
+	mdl := VerificationEmail{}
+	err := s.DB.Get(&mdl, psqlGetByIdentification, sql.Named("identification", identification))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return &mdl, err
+	}
+	return &mdl, nil
+}

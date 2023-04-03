@@ -28,7 +28,7 @@ func NewRolesPasswordPolicyOrclRepository(db *sqlx.DB, user *models.User, txID s
 
 // Create registra en la BD
 func (s *orcl) Create(m *RolesPasswordPolicy) error {
-	const osqlInsert = `INSERT INTO auth.roles_password_policy (id ,role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout)  VALUES (:id ,:role_id, :days_pass_valid, :max_length, :min_length, :store_pass_not_repeated, :failed_attempts, :time_unlock, :alpha, :digits, :special, :upper_case, :lower_case, :enable, :inactivity_time, :timeout)`
+	const osqlInsert = `INSERT INTO auth.roles_password_policy (id ,role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, required_2fa)  VALUES (:id ,:role_id, :days_pass_valid, :max_length, :min_length, :store_pass_not_repeated, :failed_attempts, :time_unlock, :alpha, :digits, :special, :upper_case, :lower_case, :enable, :inactivity_time, :timeout, :required_2fa)`
 	_, err := s.DB.NamedExec(osqlInsert, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't insert RolesPasswordPolicy: %v", err)
@@ -39,7 +39,7 @@ func (s *orcl) Create(m *RolesPasswordPolicy) error {
 
 // Update actualiza un registro en la BD
 func (s *orcl) Update(m *RolesPasswordPolicy) error {
-	const osqlUpdate = `UPDATE auth.roles_password_policy SET role_id = :role_id, days_pass_valid = :days_pass_valid, max_length = :max_length, min_length = :min_length, store_pass_not_repeated = :store_pass_not_repeated, failed_attempts = :failed_attempts, time_unlock = :time_unlock, alpha = :alpha, digits = :digits, special = :special, upper_case = :upper_case, lower_case = :lower_case, enable = :enable, inactivity_time = :inactivity_time, timeout = :timeout, updated_at = sysdate WHERE id = :id  `
+	const osqlUpdate = `UPDATE auth.roles_password_policy SET role_id = :role_id, days_pass_valid = :days_pass_valid, max_length = :max_length, min_length = :min_length, store_pass_not_repeated = :store_pass_not_repeated, failed_attempts = :failed_attempts, time_unlock = :time_unlock, alpha = :alpha, digits = :digits, special = :special, upper_case = :upper_case, lower_case = :lower_case, enable = :enable, inactivity_time = :inactivity_time, timeout = :timeout, updated_at = sysdate, required_2fa = :required_2fa WHERE id = :id  `
 	rs, err := s.DB.NamedExec(osqlUpdate, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't update RolesPasswordPolicy: %v", err)
@@ -68,7 +68,7 @@ func (s *orcl) Delete(id string) error {
 
 // GetByID consulta un registro por su ID
 func (s *orcl) GetByID(id string) (*RolesPasswordPolicy, error) {
-	const osqlGetByID = `SELECT id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, created_at, updated_at FROM auth.roles_password_policy WHERE id = :1 `
+	const osqlGetByID = `SELECT id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, required_2fa, created_at, updated_at FROM auth.roles_password_policy WHERE id = :1 `
 	mdl := RolesPasswordPolicy{}
 	err := s.DB.Get(&mdl, osqlGetByID, id)
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *orcl) GetByID(id string) (*RolesPasswordPolicy, error) {
 // GetAll consulta todos los registros de la BD
 func (s *orcl) GetAll() ([]*RolesPasswordPolicy, error) {
 	var ms []*RolesPasswordPolicy
-	const osqlGetAll = ` SELECT id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, created_at, updated_at FROM auth.roles_password_policy `
+	const osqlGetAll = ` SELECT id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, required_2fa, created_at, updated_at FROM auth.roles_password_policy `
 
 	err := s.DB.Select(&ms, osqlGetAll)
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *orcl) GetAll() ([]*RolesPasswordPolicy, error) {
 }
 func (s *orcl) GetAllRolesPasswordPolicyByRolesIDs(RolesIDs []string) ([]*RolesPasswordPolicy, error) {
 	var ms []*RolesPasswordPolicy
-	const osqlGetPasswordPolicyByRolesIDs = `SELECT convert(nvarchar(50), id) id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK) WHERE role_id in (%s)`
+	const osqlGetPasswordPolicyByRolesIDs = `SELECT convert(nvarchar(50), id) id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, required_2fa, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK) WHERE role_id in (%s)`
 
 	err := s.DB.Select(&ms, fmt.Sprintf(osqlGetPasswordPolicyByRolesIDs, helper.SliceToString(RolesIDs)))
 	if err != nil {

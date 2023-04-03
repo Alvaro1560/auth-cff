@@ -25,6 +25,12 @@ type jwtCustomClaims struct {
 	jwt.StandardClaims
 }
 
+type jwtOtpCustomClaims struct {
+	Otp string `json:"otp"`
+	Id  int64  `json:"id"`
+	jwt.StandardClaims
+}
+
 // init lee los archivos de firma y validación RSA
 func init() {
 	c := env.NewConfiguration()
@@ -47,6 +53,26 @@ func GenerateJWT(u models.User) (string, int, error) {
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute * 1200).Unix(),
 			Issuer:    "Ecatch-BPM",
+		},
+	}
+
+	t := jwt.NewWithClaims(jwt.SigningMethodRS256, c)
+	token, err := t.SignedString(signKey)
+	if err != nil {
+		logger.Error.Printf("firmando el token: %v", err)
+		return "", 70, err
+	}
+	// TODO encript Token
+	return token, 29, nil
+}
+
+func GenerateJWTOtp(otp string, id int64) (string, int, error) {
+	c := &jwtOtpCustomClaims{
+		Otp: otp,
+		Id:  id,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Minute * 10).Unix(),
+			Issuer:    "BTiger-system",
 		},
 	}
 

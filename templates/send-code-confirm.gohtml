@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+        .body {
+            padding: 24px;
+        }
+        .t-body {
+            font-size: 14px;
+        }
+        .header {
+            padding: 24px;
+            background-color: #7faffd;
+        }
+        .footer {
+            padding: 16px 24px;
+            background-color: #7faffd;
+            color: #fff;
+            font-size: 16px;
+        }
+        .line-note {
+            padding: 0 3px;
+            background-color: #7faffd;
+        }
+        .text-note {
+            width: 100%;
+            padding: 8px;
+        }
+        .note-box {
+            padding: 16px;
+            background-color: #0075BC;
+            color: #FFFFFF;
+            margin: 16px 0;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+
+<body>
+<div class="contenedor">
+    <div class="header">
+    </div>
+    <div class="body">
+        <div id="brand" style="margin-bottom: 24px">
+            <img width="200px" src="{{ range $key, $value := . }}{{if eq $key "URL-LOGO" }}{{ $value }}{{ end }}{{ end }}">
+        </div>
+        <div>
+            <table class="note">
+                <tr>
+                    <td class="line-note"></td>
+                    <td class="text-note t-body">
+                        Estimado Usuario<br><br>
+
+                        Le informamos que el código de verificación para continuar con el proceso de radicación a su manifestación PQRs es el siguiente.
+                    </td>
+                </tr>
+            </table>
+            <div style="width: calc(100% - 48px); display: inline-block; padding: 16px; text-align: center; font-size: 24px; color: #fff; border-radius: 6px; font-weight: bold; background-color: #00263E; margin: 24px 0">
+                <span>{{ range $key, $value := . }}{{if eq $key "@access-code" }}{{ $value }}{{ end }}{{ end }}</span>
+            </div>
+
+            <table class="note">
+                <tr>
+                    <td class="line-note"></td>
+                    <td class="text-note t-body">
+                        Para cualquier duda, por favor pongase en contacto con el area de servicio al cliente de Gallagher. <br>
+                        Este es un mensaje automatico del sistema, por favor, no responder a este correo.
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Tenga presente que este correo es enviado de forma automática por intermedio de
+        un operador nuestro, en el evento de cualquier inquietud o confirmación es necesario que se contacte
+        directamente con Gallagher en el número telefónico (601) 3902533.
+    </div>
+</div>
+</body>
+
+</html>

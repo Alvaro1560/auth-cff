@@ -13,6 +13,8 @@ func ValidationEmailRouter(app *fiber.App, db *sqlx.DB, tx string) {
 	v1 := api.Group("/v1")
 	validation := v1.Group("/email-verify")
 	validation.Post("/generate", ln.sendCode)
+	validation.Post("/generate-otp", ln.GenerateOtp)
 	validation.Post("/validate", ln.verifyCode)
+	validation.Post("/validate-otp", ln.verifyOtp)
 
 }

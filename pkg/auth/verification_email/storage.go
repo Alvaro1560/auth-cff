@@ -18,6 +18,8 @@ type ServicesVerificationEmailRepository interface {
 	delete(id int64) error
 	getByID(id int64) (*VerificationEmail, error)
 	getAll() ([]*VerificationEmail, error)
+	getByEmail(email string) (*VerificationEmail, error)
+	getByIdentification(identification string) (*VerificationEmail, error)
 }
 
 func FactoryStorage(db *sqlx.DB, user *models.User, txID string) ServicesVerificationEmailRepository {

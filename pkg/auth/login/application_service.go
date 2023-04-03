@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gitlab.com/e-capture/ecatch-bpm/ecatch-auth/internal/ciphers"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -28,7 +29,7 @@ func NewLoginService(db *sqlx.DB, TxID string) Service {
 	return Service{DB: db, TxID: TxID}
 }
 
-func (s Service) Login(id, Username, Password string, ClientID int, HostName, RealIP string) (string, int, error) {
+func (s *Service) Login(id, Username, Password string, ClientID int, HostName, RealIP string) (string, int, error) {
 	var token string
 	m := NewLogin(id, Username, Password, ClientID, HostName, RealIP)
 	if m.Username == "" {
@@ -125,28 +126,40 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 		logger.Warning.Printf(s.TxID, " - el usuario no tiene asignado proyecto: %s, IP: %s", m.ID, m.RealIP, err)
 		return token, cod, nil
 	}
-	_, cod, err = s.validatePasswordPolicies(usr.Roles)
+	politics, cod, err := s.validatePasswordPolicies(usr.Roles)
 	if err != nil {
-		transact.RegisterLogUsr("user-has-not-role", HostName, RealIP, RealIP, usr.ID)
-		logger.Warning.Printf(s.TxID, " - el usuario no tiene asignado un valido: %s, IP: %s", m.ID, m.RealIP)
-		return token, cod, nil
+		transact.RegisterLogUsr("user-has-not-password-politics", HostName, RealIP, RealIP, usr.ID)
+		logger.Warning.Printf(s.TxID, " - No se pudo obtener las politicas de las contraseñas: %s, IP: %s", m.ID, m.RealIP)
+		return token, cod, err
+	}
+
+	if politics == nil {
+		transact.RegisterLogUsr("user-has-not-password-politics", HostName, RealIP, RealIP, usr.ID)
+		logger.Warning.Printf(s.TxID, " - El usuario no tiene politicas de seguridad itegradas, contactese con su administrador: %s, IP: %s", m.ID, m.RealIP)
+		return token, 22, fmt.Errorf("el usuario no tiene politicas de seguridad itegradas, contactese con su administrador")
 	}
 
 	if !password.Compare(usr.ID, usr.Password, m.Password) {
 		transact.RegisterLogUsr("login-filed", HostName, RealIP, RealIP, usr.ID)
-		//TODO
-		// revisar politica intentos fallidos
-		/*failedAttempts, err := user.updateFailedAttempt(1)
-		if err != nil {
-			logger.Error.Printf("intentando registrar el login fallido de: %s: %v", user.ID, err)
+
+		failedAttempts := usr.FailedAttempts + 1
+		_, err = s.registerFailedAttempts(usr.ID, failedAttempts)
+		if err == nil {
+			attempts := politics[0].FailedAttempts
+			for _, politic := range politics {
+				if attempts > politic.FailedAttempts {
+					attempts = politic.FailedAttempts
+				}
+			}
+
+			currentDate := time.Now()
+			if failedAttempts >= attempts {
+				usr.Status = 16
+				usr.BlockDate = &currentDate
+				transact.RegisterLogUsr("user-blocked", HostName, RealIP, RealIP, usr.ID)
+				s.blockUser(usr.ID)
+			}
 		}
-
-		if failedAttempts >= policies.FailedAttempts {
-
-			user.Status = 2
-			user.BlockDate = time.Now()
-			user.blockUser()
-		}*/
 
 		return token, 10, fmt.Errorf("usuario o contraseña incorrecta")
 	}
@@ -168,13 +181,29 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 
 		}*/
 
-	if usr.Status == 2 {
-		return token, 69, nil
+	if usr.Status == 16 {
+		timeUnlock := politics[0].TimeUnlock
+		for _, politic := range politics {
+			if timeUnlock < politic.TimeUnlock {
+				timeUnlock = politic.TimeUnlock
+			}
+		}
+
+		dateUnlock := usr.BlockDate.AddDate(0, 0, timeUnlock)
+		currentDate := time.Now()
+
+		if dateUnlock.Sub(currentDate).Hours() > 0 {
+			return token, 69, nil
+		}
+		transact.RegisterLogUsr("user-unlocked", HostName, RealIP, RealIP, usr.ID)
+		s.unBlockUser(usr.ID)
+		s.registerFailedAttempts(usr.ID, 0)
 	}
+
 	cod, err = s.registerLoggedUser(usr.ID, m.RealIP, m.HostName)
 	if err != nil {
 		transact.RegisterLogUsr("register-login-filed", HostName, RealIP, RealIP, usr.ID)
-		logger.Warning.Printf(s.TxID, " - el usuario no tiene asignado un valido: %s, IP: %s", m.ID, m.RealIP)
+		logger.Warning.Printf(s.TxID, " - no se pudo registrar la trazabilidad: %s, IP: %s", m.ID, m.RealIP)
 		return token, cod, nil
 	}
 	transact.RegisterLogUsr("success-login", HostName, RealIP, RealIP, usr.ID)
@@ -190,7 +219,16 @@ func (s Service) Login(id, Username, Password string, ClientID int, HostName, Re
 		return "", cod, err
 	}
 
-	return token, 29, nil
+	code := 29
+
+	for _, politic := range politics {
+		if politic.Required2fa {
+			code = 1001
+			break
+		}
+	}
+
+	return token, code, nil
 }
 
 func (s *Service) getUserByUsername(username string) (*models.User, int, error) {
@@ -251,11 +289,21 @@ func (s *Service) ldapAuthentication(id, password string, roles []*string) ([]*s
 	return rls, groupValid, 29, nil
 }
 
-// TODO implement validatePasswordPolicies
-func (s *Service) validatePasswordPolicies(roles []*string) (roles_password_policy.RolesPasswordPolicy, int, error) {
-	var pp roles_password_policy.RolesPasswordPolicy
+func (s *Service) validatePasswordPolicies(roles []*string) ([]*roles_password_policy.RolesPasswordPolicy, int, error) {
+	var rs []string
+	for _, r := range roles {
+		rs = append(rs, *r)
+	}
+	repositoryPwd := roles_password_policy.FactoryStorage(s.DB, nil, s.TxID)
+	servicePwd := roles_password_policy.NewRolesPasswordPolicyService(repositoryPwd, nil, s.TxID)
 
-	return pp, 29, nil
+	politics, err := servicePwd.GetAllRolesPasswordPolicyByRolesIDs(rs)
+	if err != nil {
+		logger.Error.Println("couldn't get user by id", err)
+		return nil, 22, err
+	}
+
+	return politics, 29, nil
 }
 
 // TODO implement registerLoggedUser
@@ -286,7 +334,7 @@ func (s *Service) getProjectByRoles(roles []*string) ([]*string, int, error) {
 	return projects, 29, nil
 }
 
-func (s Service) getRolesByUserID(id string) ([]*string, int, error) {
+func (s *Service) getRolesByUserID(id string) ([]*string, int, error) {
 	var UserRoles []*string
 	repositoryRoles := roles.FactoryStorage(s.DB, nil, s.TxID)
 	serviceRoles := roles.NewRoleService(repositoryRoles, nil, s.TxID)
@@ -299,4 +347,43 @@ func (s Service) getRolesByUserID(id string) ([]*string, int, error) {
 		UserRoles = append(UserRoles, &r.ID)
 	}
 	return UserRoles, 29, nil
+}
+
+func (s *Service) registerFailedAttempts(userId string, failedAttempts int) (int, error) {
+
+	repositoryUsers := users.FactoryStorage(s.DB, nil, s.TxID)
+	serviceUser := users.NewUserService(repositoryUsers, nil, s.TxID)
+	err := serviceUser.UpdateFailedAttempts(userId, failedAttempts)
+	if err != nil {
+		logger.Error.Println("couldn't get user by id", err)
+		return 22, err
+	}
+
+	return 29, nil
+}
+
+func (s *Service) blockUser(userId string) (int, error) {
+
+	repositoryUsers := users.FactoryStorage(s.DB, nil, s.TxID)
+	serviceUser := users.NewUserService(repositoryUsers, nil, s.TxID)
+	err := serviceUser.BlockUser(userId)
+	if err != nil {
+		logger.Error.Println("couldn't block user by id", err)
+		return 22, err
+	}
+
+	return 29, nil
+}
+
+func (s *Service) unBlockUser(userId string) (int, error) {
+
+	repositoryUsers := users.FactoryStorage(s.DB, nil, s.TxID)
+	serviceUser := users.NewUserService(repositoryUsers, nil, s.TxID)
+	err := serviceUser.UnblockUser(userId)
+	if err != nil {
+		logger.Error.Println("couldn't un block user by id", err)
+		return 22, err
+	}
+
+	return 29, nil
 }

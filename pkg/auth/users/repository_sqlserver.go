@@ -137,7 +137,7 @@ func (s *sqlserver) GetUsersByIDs(ids []string) ([]*User, error) {
 	return ms, nil
 }
 
-//Bloquea el Usuario
+// Bloquea el Usuario
 func (s *sqlserver) BlockUser(id string) error {
 	const sqlUpdateBlockUser = `UPDATE auth.users SET [status] = 16, block_date = GETDATE(), is_block = 1, updated_at = GETDATE() WHERE id = :id `
 	m := User{ID: id}
@@ -152,7 +152,7 @@ func (s *sqlserver) BlockUser(id string) error {
 	return nil
 }
 
-//Desbloquea el Usuario
+// Desbloquea el Usuario
 func (s *sqlserver) UnblockUser(id string) error {
 	const sqlUpdateUnblockUser = `UPDATE auth.users SET [status] = 1, block_date = GETDATE(), is_block = 0, updated_at = GETDATE() WHERE id = :id `
 	m := User{ID: id}
@@ -167,7 +167,7 @@ func (s *sqlserver) UnblockUser(id string) error {
 	return nil
 }
 
-//Cierra Sesion del Usuario
+// Cierra Sesion del Usuario
 func (s *sqlserver) LogoutUser(id string) error {
 	const sqlLogoutUser = `DELETE FROM auth.users_loggeds WHERE user_id = :id `
 	m := User{ID: id}
@@ -182,7 +182,7 @@ func (s *sqlserver) LogoutUser(id string) error {
 	return nil
 }
 
-//Cambia la clave y guarda el historial de clave
+// Cambia la clave y guarda el historial de clave
 func (s *sqlserver) ChangePassword(id string, password string) error {
 	tx, err := s.DB.Beginx()
 	if err != nil {
@@ -278,6 +278,33 @@ func (s *sqlserver) DeleteUserPasswordHistory(id string) error {
 	rs, err := s.DB.NamedExec(sqlDelete, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't delete users_password_history: %v", err)
+		return err
+	}
+	if i, _ := rs.RowsAffected(); i == 0 {
+		return fmt.Errorf("ecatch:108")
+	}
+	return nil
+}
+
+func (s *sqlserver) GetByIdentificationNumber(identificationNumber string) (*User, error) {
+	const sqlGetByUsername = `SELECT  convert(nvarchar(50), id) id , username, name, lastname, password, email_notifications, identification_number, identification_type, status, failed_attempts, last_change_password, block_date, disabled_date, change_password, is_block, is_disabled, last_login, created_at, updated_at FROM auth.users  WHERE identification_number = @number`
+	mdl := User{}
+	err := s.DB.Get(&mdl, sqlGetByUsername, sql.Named("number", identificationNumber))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		logger.Error.Printf(s.TxID, " - couldn't execute GetByUsername User: %v", err)
+		return &mdl, err
+	}
+	return &mdl, nil
+}
+
+func (s *sqlserver) UpdateFailedAttempts(m *User) error {
+	const sqlUpdateFailedAttempts = `UPDATE auth.users SET failed_attempts = :failed_attempts, updated_at = GETDATE() WHERE id = :id `
+	rs, err := s.DB.NamedExec(sqlUpdateFailedAttempts, &m)
+	if err != nil {
+		logger.Error.Printf(s.TxID, " - couldn't update User: %v", err)
 		return err
 	}
 	if i, _ := rs.RowsAffected(); i == 0 {

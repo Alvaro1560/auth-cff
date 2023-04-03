@@ -18,8 +18,8 @@ func NewRolesPasswordPolicyService(repository ServicesRolesPasswordPolicyReposit
 	return Service{repository: repository, user: user, txID: TxID}
 }
 
-func (s Service) CreateRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLength int, MinLength int, StorePassNotRepeated int, FailedAttempts int, TimeUnlock int, Alpha int, Digits int, Special int, UpperCase int, LowerCase int, Enable bool, InactivityTime int, Timeout int) (*RolesPasswordPolicy, int, error) {
-	m := NewRolesPasswordPolicy(id, RoleId, DaysPassValid, MaxLength, MinLength, StorePassNotRepeated, FailedAttempts, TimeUnlock, Alpha, Digits, Special, UpperCase, LowerCase, Enable, InactivityTime, Timeout)
+func (s Service) CreateRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLength int, MinLength int, StorePassNotRepeated int, FailedAttempts int, TimeUnlock int, Alpha int, Digits int, Special int, UpperCase int, LowerCase int, Enable bool, InactivityTime int, Timeout int, required2fa bool) (*RolesPasswordPolicy, int, error) {
+	m := NewRolesPasswordPolicy(id, RoleId, DaysPassValid, MaxLength, MinLength, StorePassNotRepeated, FailedAttempts, TimeUnlock, Alpha, Digits, Special, UpperCase, LowerCase, Enable, InactivityTime, Timeout, required2fa)
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.txID, " - don't meet validations:", err)
 		return m, 15, err
@@ -32,8 +32,8 @@ func (s Service) CreateRolesPasswordPolicy(id string, RoleId string, DaysPassVal
 	return m, 29, nil
 }
 
-func (s Service) UpdateRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLength int, MinLength int, StorePassNotRepeated int, FailedAttempts int, TimeUnlock int, Alpha int, Digits int, Special int, UpperCase int, LowerCase int, Enable bool, InactivityTime int, Timeout int) (*RolesPasswordPolicy, int, error) {
-	m := NewRolesPasswordPolicy(id, RoleId, DaysPassValid, MaxLength, MinLength, StorePassNotRepeated, FailedAttempts, TimeUnlock, Alpha, Digits, Special, UpperCase, LowerCase, Enable, InactivityTime, Timeout)
+func (s Service) UpdateRolesPasswordPolicy(id string, RoleId string, DaysPassValid int, MaxLength int, MinLength int, StorePassNotRepeated int, FailedAttempts int, TimeUnlock int, Alpha int, Digits int, Special int, UpperCase int, LowerCase int, Enable bool, InactivityTime int, Timeout int, required2fa bool) (*RolesPasswordPolicy, int, error) {
+	m := NewRolesPasswordPolicy(id, RoleId, DaysPassValid, MaxLength, MinLength, StorePassNotRepeated, FailedAttempts, TimeUnlock, Alpha, Digits, Special, UpperCase, LowerCase, Enable, InactivityTime, Timeout, required2fa)
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.txID, " - don't meet validations:", err)
 		return m, 15, err

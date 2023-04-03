@@ -101,3 +101,31 @@ func (s *psql) getAll() ([]*VerificationEmail, error) {
 	}
 	return ms, nil
 }
+
+// GetByID consulta un registro por su ID
+func (s *psql) getByEmail(email string) (*VerificationEmail, error) {
+	const psqlGetByEmail = `SELECT id , email, verification_code, identification, verification_date, created_at, updated_at FROM auth.verification_email WHERE email = $1  order by created_at desc limit 1`
+	mdl := VerificationEmail{}
+	err := s.DB.Get(&mdl, psqlGetByEmail, email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return &mdl, err
+	}
+	return &mdl, nil
+}
+
+// GetByID consulta un registro por su ID
+func (s *psql) getByIdentification(identification string) (*VerificationEmail, error) {
+	const psqlGetByIdentification = `SELECT id , email, verification_code, identification, verification_date, created_at, updated_at FROM auth.verification_email WHERE identification = $1  order by created_at desc limit 1`
+	mdl := VerificationEmail{}
+	err := s.DB.Get(&mdl, psqlGetByIdentification, identification)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return &mdl, err
+	}
+	return &mdl, nil
+}

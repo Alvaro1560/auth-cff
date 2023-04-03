@@ -28,7 +28,7 @@ func NewRolesPasswordPolicySqlServerRepository(db *sqlx.DB, user *models.User, t
 
 // Create registra en la BD
 func (s *sqlserver) Create(m *RolesPasswordPolicy) error {
-	const sqlInsert = `INSERT INTO auth.roles_password_policy (id ,role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout,created_at, updated_at) VALUES (:id ,:role_id, :days_pass_valid, :max_length, :min_length, :store_pass_not_repeated, :failed_attempts, :time_unlock, :alpha, :digits, :special, :upper_case, :lower_case, :enable, :inactivity_time, :timeout,GetDate(), GetDate()) `
+	const sqlInsert = `INSERT INTO auth.roles_password_policy (id ,role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout,created_at, updated_at, required_2fa) VALUES (:id ,:role_id, :days_pass_valid, :max_length, :min_length, :store_pass_not_repeated, :failed_attempts, :time_unlock, :alpha, :digits, :special, :upper_case, :lower_case, :enable, :inactivity_time, :timeout,GetDate(), GetDate(), :required_2fa) `
 	_, err := s.DB.NamedExec(sqlInsert, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't insert RolesPasswordPolicy: %v", err)
@@ -39,7 +39,7 @@ func (s *sqlserver) Create(m *RolesPasswordPolicy) error {
 
 // Update actualiza un registro en la BD
 func (s *sqlserver) Update(m *RolesPasswordPolicy) error {
-	const sqlUpdate = `UPDATE auth.roles_password_policy SET role_id = :role_id, days_pass_valid = :days_pass_valid, max_length = :max_length, min_length = :min_length, store_pass_not_repeated = :store_pass_not_repeated, failed_attempts = :failed_attempts, time_unlock = :time_unlock, alpha = :alpha, digits = :digits, special = :special, upper_case = :upper_case, lower_case = :lower_case, enable = :enable, inactivity_time = :inactivity_time, timeout = :timeout, updated_at = GetDate() WHERE id = :id `
+	const sqlUpdate = `UPDATE auth.roles_password_policy SET role_id = :role_id, days_pass_valid = :days_pass_valid, max_length = :max_length, min_length = :min_length, store_pass_not_repeated = :store_pass_not_repeated, failed_attempts = :failed_attempts, time_unlock = :time_unlock, alpha = :alpha, digits = :digits, special = :special, upper_case = :upper_case, lower_case = :lower_case, enable = :enable, inactivity_time = :inactivity_time, timeout = :timeout, updated_at = GetDate(), required_2fa = :required_2fa WHERE id = :id `
 	rs, err := s.DB.NamedExec(sqlUpdate, &m)
 	if err != nil {
 		logger.Error.Printf(s.TxID, " - couldn't update RolesPasswordPolicy: %v", err)
@@ -68,7 +68,7 @@ func (s *sqlserver) Delete(id string) error {
 
 // GetByID consulta un registro por su ID
 func (s *sqlserver) GetByID(id string) (*RolesPasswordPolicy, error) {
-	const sqlGetByID = `SELECT convert(nvarchar(50), id) id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK)  WHERE id = @id `
+	const sqlGetByID = `SELECT convert(nvarchar(50), id) id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, required_2fa, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK)  WHERE id = @id `
 	mdl := RolesPasswordPolicy{}
 	err := s.DB.Get(&mdl, sqlGetByID, sql.Named("id", id))
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *sqlserver) GetByID(id string) (*RolesPasswordPolicy, error) {
 // GetAll consulta todos los registros de la BD
 func (s *sqlserver) GetAll() ([]*RolesPasswordPolicy, error) {
 	var ms []*RolesPasswordPolicy
-	const sqlGetAll = `SELECT convert(nvarchar(50), id) id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK) `
+	const sqlGetAll = `SELECT convert(nvarchar(50), id) id , role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, required_2fa, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK) `
 
 	err := s.DB.Select(&ms, sqlGetAll)
 	if err != nil {
@@ -99,7 +99,7 @@ func (s *sqlserver) GetAll() ([]*RolesPasswordPolicy, error) {
 
 func (s *sqlserver) GetAllRolesPasswordPolicyByRolesIDs(RolesIDs []string) ([]*RolesPasswordPolicy, error) {
 	var ms []*RolesPasswordPolicy
-	const sqlGetPasswordPolicyByRolesIDs = `SELECT convert(nvarchar(50), id) id , convert(nvarchar(50), role_id) role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK) WHERE role_id in (%s)`
+	const sqlGetPasswordPolicyByRolesIDs = `SELECT convert(nvarchar(50), id) id , convert(nvarchar(50), role_id) role_id, days_pass_valid, max_length, min_length, store_pass_not_repeated, failed_attempts, time_unlock, alpha, digits, special, upper_case, lower_case, enable, inactivity_time, timeout, required_2fa, created_at, updated_at FROM auth.roles_password_policy  WITH (NOLOCK) WHERE role_id in (%s)`
 
 	err := s.DB.Select(&ms, fmt.Sprintf(sqlGetPasswordPolicyByRolesIDs, helper.SliceToString(RolesIDs)))
 	if err != nil {
