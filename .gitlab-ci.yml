@@ -5,7 +5,8 @@ stages: #Aqui definimos los 3 stages esenciales en todo pipeline
   - test
   - build
   - deploy
-#-STAGE INSTALL-DEPENDENCIES
+
+#STAGE INSTALL-DEPENDENCIES
 install-dependencies:
   stage: install-dependencies
   script:
@@ -35,7 +36,7 @@ test:
   only: #solo se debe ejecutar el trabajo actual en la rama main
     - develop
 
-# STAGE BUILD
+#STAGE BUILD
 build:
   stage: build # Hacemos referencia al stage build definido en stages
   script: # Definimos las tareas a desarrollar que se realizaran dentro del stage build
@@ -61,8 +62,8 @@ deploy:
     - build
   script:
     - echo "Deploying CI/CD................"
-    - sshpass -p $password ssh $user@$server "sudo systemctl stop cloud-dev-ecatch-auth.service"
-    - sshpass -p $password scp build/ecatch-auth $user@$server:/home/odin/jla/dev/ecatch-cloud/ecatch/microservicios/ecatch-auth # Accedemos al servidor odin con la clave, usuario y ip del servidor definido en variables de CI/CD para poder copiar el ejecutable en la ruta definida
-    - sshpass -p $password ssh $user@$server "sudo systemctl restart cloud-dev-ecatch-auth.service" #una vez copiado el compilado reiniciamos el servicio
+    - sshpass -p $password ssh $user@$server "sudo systemctl stop dev-cloud-ecatch-auth.service"
+    - sshpass -p $password scp build/ecatch-auth $user@$server:/home/ubuntu/ecapture/dev/ecatch-cloud/ecatch/microservicios/ecatch-auth # Accedemos al servidor odin con la clave, usuario y ip del servidor definido en variables de CI/CD para poder copiar el ejecutable en la ruta definida
+    - sshpass -p $password ssh $user@$server "sudo systemctl restart dev-cloud-ecatch-auth.service" #una vez copiado el compilado reiniciamos el servicio
   only:
     - develop
