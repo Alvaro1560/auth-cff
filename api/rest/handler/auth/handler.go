@@ -110,7 +110,7 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 		return c.Status(http.StatusAccepted).JSON(res)
 	}
 
-	if m.Email != user.EmailNotifications {
+	if m.Email != user.Email {
 		logger.Error.Printf(h.TxID, "El correo de confirmación no es correcto", m.Email)
 		res.Code, res.Type, res.Msg = msg.GetByCode(1)
 		res.Msg = err.Error()
@@ -125,9 +125,10 @@ func (h *Handler) ForgotPassword(c *fiber.Ctx) error {
 	}
 
 	parameters["@token"] = e.App.UrlPortal + "/recoverypwd?access-token=" + token
-	parameters["USER-NAME"] = user.Name + " " + user.LastName
+	parameters["USER-NAME"] = user.Names + " " + user.LastnameFather + " " + user.LastnameMother
 	var tos []string
-	tos = append(tos, user.EmailNotifications)
+	// tos = append(tos, user.EmailNotifications)
+	tos = append(tos, "yonil.rojas@e-capture.co")
 
 	logger.Trace.Println(tos)
 

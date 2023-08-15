@@ -20,7 +20,6 @@ ecatch-auth
 
 # Variables de entorno
 .env
-config.json
 
 # Directorios usados por los IDE de jetbrains
 .idea/

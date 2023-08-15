@@ -24,9 +24,9 @@ func NewUserService(repository ServicesUserRepository, user *models.User, TxID s
 	return Service{repository: repository, user: user, txID: TxID}
 }
 
-func (s Service) CreateUser(id string, Username string, Name string, LastName string, Password string, EmailNotifications string, IdentificationNumber string, IdentificationType string) (*User, int, error) {
-	var changePass, isBlock, isDisabled bool
-	m := NewUser(id, Username, Name, LastName, EmailNotifications, IdentificationNumber, IdentificationType)
+func (s Service) CreateUser(id string, Username string, CodeStudent string, Dni string, Names string, LastnameFather string, LastnameMother string, Email string, Password string) (*User, int, error) {
+	var isBlock bool
+	m := NewUser(id, Username, CodeStudent, Dni, Names, LastnameFather, LastnameMother, Email)
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.txID, " - don't meet validations:", err)
 		return m, 15, err
@@ -34,11 +34,7 @@ func (s Service) CreateUser(id string, Username string, Name string, LastName st
 
 	m.Password = password.Encrypt(Password)
 
-	if m.ChangePassword == nil {
-		m.ChangePassword = &changePass
-	}
 	m.IsBlock = &isBlock
-	m.IsDisabled = &isDisabled
 	if err := s.repository.Create(m); err != nil {
 		logger.Error.Println(s.txID, " - couldn't create User :", err)
 		if err.Error() == "ecatch:108" {
@@ -48,8 +44,8 @@ func (s Service) CreateUser(id string, Username string, Name string, LastName st
 	}
 	return m, 29, nil
 }
-func (s Service) UpdateUser(id string, User string, Name string, LastName string, Password string, EmailNotifications string, IdentificationNumber string, IdentificationType string) (*User, int, error) {
-	m := NewUser(id, User, Name, LastName, EmailNotifications, IdentificationNumber, IdentificationType)
+func (s Service) UpdateUser(id string, Username string, CodeStudent string, Dni string, Names string, LastnameFather string, LastnameMother string, Email string, Password string) (*User, int, error) {
+	m := NewUser(id, Username, CodeStudent, Dni, Names, LastnameFather, LastnameMother, Email)
 	if valid, err := m.valid(); !valid {
 		logger.Error.Println(s.txID, " - don't meet validations:", err)
 		return m, 15, err

@@ -69,12 +69,13 @@ func connectionString(t string) string {
 		logger.Error.Print("El tipo de conexión no correspondea data/logs")
 		return ""
 	}
-	switch strings.ToLower(DBEngine) {
+	switch strings.ToLower(c.DB.Engine) {
 	case "postgres":
 		return fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%d sslmode=disable", database, username, password, host, port)
 	case "sqlserver":
 		return fmt.Sprintf(
-			"server=%s\\%s;user id=%s;database=%s;password=%s;port=%d", host, instance, username, database, password, port)
+			"sqlserver:%s//%s:%s@%s:%d?database=%s&encrypt=disable", instance, username, password, host, port, database)
+
 	}
 	logger.Error.Print("el motor de bases de datos solicitado no está configurado aún")
 

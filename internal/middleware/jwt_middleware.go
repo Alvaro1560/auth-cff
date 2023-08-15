@@ -99,9 +99,5 @@ func GetUser(c *fiber.Ctx) (*models.User, error) {
 		logger.Warning.Printf("Token no Valido: %v", err)
 		return u, fmt.Errorf("Token no Valido")
 	}
-	if c.IP() != u.RealIP {
-		logger.Warning.Printf("Token creado en un origen diferente : %v", err)
-		return u, fmt.Errorf("Token creado en un origen diferente")
-	}
 	return u, nil
 }

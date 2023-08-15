@@ -1,0 +1,40 @@
+{
+  "app":{
+    "service_name": "CCFF-auth",
+    "port": 6061,
+    "allowed_domains": "*",
+    "path_log": "./log",
+    "log_review_interval":60,
+    "register_log": true,
+    "rsa_private_key": "../rsa/app.rsa",
+    "rsa_public_key": "../rsa/app.rsa.pub",
+    "logger_http": true,
+    "is_cipher": false,
+    "keyword_autologin": "56151fc7-6ab4-4369-9094-37a6a4f67c6b",
+    "autologin": true,
+    "user": "manager",
+    "password": "Ecapture123"
+
+  },
+  "db": {
+    "engine": "sqlserver",
+    "server": "system_ccff.mssql.somee.com",
+    "port": 1433,
+    "name": "system_ccff",
+    "user": "Alvaro1560_SQLLogin_1",
+    "password": "rzvn7cw7vz",
+    "instance": "",
+    "is_secure": false
+  },
+  "smtp": {
+    "port": 587,
+    "host": "mail.smtp2go.com",
+    "email": "corp_pqrs_colombia",
+    "password": "gtSgjDW8L3b567ac"
+  },
+  "template": {
+    "email_code": "send-code-confirm.gohtml",
+    "email_code_subject": "código de verificación correo electrónico",
+    "email_sender": "Col.notificacionesPQRS@ajg.com"
+  }
+}

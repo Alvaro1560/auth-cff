@@ -113,8 +113,8 @@ func (h *Handler) CreateUser(c *fiber.Ctx) error {
 
 	m.Password = password.Encrypt(m.Password)
 	m.PasswordConfirm = ""
-	user, cod, err := serviceUsers.CreateUser(id, m.Username, m.Name, m.LastName, m.Password,
-		m.EmailNotifications, m.IdentificationNumber, m.IdentificationType)
+	user, cod, err := serviceUsers.CreateUser(id, m.Username, m.CodeStudent, m.Dni, m.Names,
+		m.LastnameFather, m.LastnameMother, m.Email, m.Password)
 	if err != nil {
 		logger.Error.Println("couldn't create user: ", err)
 		res.Code, res.Type, res.Msg = msg.GetByCode(cod)

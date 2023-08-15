@@ -108,7 +108,7 @@ func (s *sqlserver) GetAll() ([]*User, error) {
 
 // GetByUsername consulta un registro por su ID
 func (s *sqlserver) GetByUsername(username string) (*User, error) {
-	const sqlGetByUsername = `SELECT convert(nvarchar(50), id) id , username, name, lastname, password, email_notifications, identification_number, identification_type, status, failed_attempts, last_change_password, block_date, disabled_date, change_password, is_block, is_disabled, last_login, created_at, updated_at FROM auth.users WHERE username = @username `
+	const sqlGetByUsername = `SELECT convert(nvarchar(50), id) id , username, code_student, dni, names, lastname_mother, lastname_father, email, password, is_delete, is_block, created_at, updated_at FROM auth.users WHERE username = @username `
 	mdl := User{}
 	err := s.DB.Get(&mdl, sqlGetByUsername, sql.Named("username", username))
 	if err != nil {
@@ -137,7 +137,7 @@ func (s *sqlserver) GetUsersByIDs(ids []string) ([]*User, error) {
 	return ms, nil
 }
 
-//Bloquea el Usuario
+// Bloquea el Usuario
 func (s *sqlserver) BlockUser(id string) error {
 	const sqlUpdateBlockUser = `UPDATE auth.users SET [status] = 16, block_date = GETDATE(), is_block = 1, updated_at = GETDATE() WHERE id = :id `
 	m := User{ID: id}
@@ -152,7 +152,7 @@ func (s *sqlserver) BlockUser(id string) error {
 	return nil
 }
 
-//Desbloquea el Usuario
+// Desbloquea el Usuario
 func (s *sqlserver) UnblockUser(id string) error {
 	const sqlUpdateUnblockUser = `UPDATE auth.users SET [status] = 1, block_date = GETDATE(), is_block = 0, updated_at = GETDATE() WHERE id = :id `
 	m := User{ID: id}
@@ -167,7 +167,7 @@ func (s *sqlserver) UnblockUser(id string) error {
 	return nil
 }
 
-//Cierra Sesion del Usuario
+// Cierra Sesion del Usuario
 func (s *sqlserver) LogoutUser(id string) error {
 	const sqlLogoutUser = `DELETE FROM auth.users_loggeds WHERE user_id = :id `
 	m := User{ID: id}
@@ -182,7 +182,7 @@ func (s *sqlserver) LogoutUser(id string) error {
 	return nil
 }
 
-//Cambia la clave y guarda el historial de clave
+// Cambia la clave y guarda el historial de clave
 func (s *sqlserver) ChangePassword(id string, password string) error {
 	tx, err := s.DB.Beginx()
 	if err != nil {
